@@ -308,7 +308,7 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 
 		if (SDL_GetTicks() - button_hold > 1000) {
 			wasActive = 0;
-			poweroffDialog();
+			powerManager->doSuspend(1);
 		}
 	}
 
