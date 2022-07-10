@@ -112,61 +112,34 @@ uint32_t oc_table[] = {
 
 volatile uint32_t *mem;
 volatile uint8_t memdev = 0;
+int32_t tickBattery = 0;
+
+int32_t getBatteryLevel() {
+	int val = -1;
+	if (FILE *f = fopen("/sys/devices/platform/soc/1c23400.battery/power_supply/miyoo-battery/voltage_now", "r")) {
+		fscanf(f, "%i", &val);
+		fclose(f);
+	}
+	return val;
+}
+
+uint8_t getBatteryStatus(int32_t val, int32_t min, int32_t max) {
+	if ((val > 10000) || (val < 0)) return 6;
+	if (val > 4000) return 5; // 100%
+	if (val > 3900) return 4; // 80%
+	if (val > 3800) return 3; // 60%
+	if (val > 3700) return 2; // 40%
+	if (val > 3520) return 1; // 20%
+	return 0; // 0% :(
+}
 
 uint32_t hwCheck(unsigned int interval = 0, void *param = NULL) {
-
-//   unsigned long ret;
-
-//   ioctl(fb0, MIYOO_FB0_GET_VER, &ret);
-//   ioctl(kbd, MIYOO_KBD_SET_VER, ret);
-// // int vir = open("/dev/miyoo_vir", O_RDWR);
-//   // ioctl(vir, MIYOO_VIR_SET_VER, ret);
-//   // close(vir);
-//     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
-//     if (!ret) return 0;
-
-//     switch(ret) {
-//     case 1:
-//       printf("backlight++\n");
-//       // if(lid < 10){
-//         // lid+= 1;
-//         // write_conf(MIYOO_LID_FILE, lid);
-//         // sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-//         // system(buf);
-//         // info_fb0(fb0, lid, vol, 1);
-//       // }
-//       break;
-//     case 2:
-//       printf("backlight--\n");
-//       // if(lid > 1){
-//       //   lid-= 1;
-//       //   write_conf(MIYOO_LID_FILE, lid);
-//       //   sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-//       //   system(buf);
-//       //   info_fb0(fb0, lid, vol, 1);
-//       // }
-//       break;
-//     case 3:
-//       printf("sound++\n");
-//       // if(vol < 9){
-//       //   vol+= 1;
-//       //   write_conf(MIYOO_VOL_FILE, vol);
-//       //   ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
-//       //   info_fb0(fb0, lid, vol, 1);
-//       // }
-//       break;
-//     case 4:
-//       printf("sound--\n");
-//       // if(vol > 0){
-//       //   vol-= 1;
-//       //   write_conf(MIYOO_VOL_FILE, vol);
-//       //   ioctl(snd, MIYOO_SND_SET_VOLUME, vol);
-//       //   info_fb0(fb0, lid, vol, 1);
-//       // }
-//       break;
-//     }
-
-	return 0;
+	tickBattery++;
+	if (tickBattery > 30) { // update battery level every 30 hwChecks
+		tickBattery = 0;
+		batteryIcon = getBatteryStatus(getBatteryLevel(), 0, 0);
+	}
+	return interval;
 }
 
 uint8_t getMMCStatus() {
@@ -183,38 +156,6 @@ uint8_t getTVOutStatus() {
 
 uint8_t getDevStatus() {
 	return 0;
-}
-
-int32_t getBatteryLevel() {
-	int val = -1;
-	if (FILE *f = fopen("/sys/devices/platform/soc/1c23400.battery/power_supply/miyoo-battery/voltage_now", "r")) {
-		fscanf(f, "%i", &val);
-		fclose(f);
-	}
-	return val;
-}
-
-uint8_t getBatteryStatus(int32_t val, int32_t min, int32_t max) {
-	if (val = -1) return 6; // charging
-
-	// bool needWriteConfig = false;
-	// if (val > max) {
-	// 	needWriteConfig = true;
-	// 	max = confInt["maxBattery"] = val;
-	// }
-	// if (val < min) {
-	// 	needWriteConfig = true;
-	// 	min = confInt["minBattery"] = val;
-	// }
-
-	// if (needWriteConfig)
-	// 	writeConfig();
-
-	if (max == min) {
-		return 3;
-	}
-
-	return 5 - 5 * (max - val) / (max - min);
 }
 
 uint8_t getVolumeMode(uint8_t vol) {
@@ -236,6 +177,7 @@ private:
 		CPU_MIN = 200;
 		CPU_STEP = 6;
 
+		batteryIcon = getBatteryStatus(getBatteryLevel(), 0, 0);
 		// setenv("HOME", "/mnt", 1);
 		system("mount -o remount,async /mnt");
 
