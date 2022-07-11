@@ -182,14 +182,14 @@ bool BrowseDialog::exec() {
 		} else if (showDirectories && allowDirUp && (gmenu2x->input[MODIFIER] || (gmenu2x->input[CONFIRM] && getFile(selected) == ".."))) { /*Directory Up */
 			selected = 0;
 				preview = "";
-				if (browse_history.size() > 0) {
-					selected = browse_history.back();
-					browse_history.pop_back();
-				}
-				directoryEnter(path + "/..");
-			} else if (gmenu2x->input[CONFIRM]) {
-				if (allowEnterDirectory && isDirectory(selected)) {
-					browse_history.push_back(selected);
+			if (browse_history.size() > 0) {
+				selected = browse_history.back();
+				browse_history.pop_back();
+			}
+			directoryEnter(path + "/..");
+		} else if (gmenu2x->input[CONFIRM]) {
+			if (allowEnterDirectory && isDirectory(selected)) {
+				browse_history.push_back(selected);
 				directoryEnter(getFilePath(selected));
 				selected = 0;
 				} else {
