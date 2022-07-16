@@ -255,14 +255,14 @@ void BrowseDialog::contextMenu() {
 	if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp")
 		options.push_back((MenuOption){gmenu2x->tr["Set as wallpaper"], MakeDelegate(this, &BrowseDialog::setWallpaper)});
 
-	if (path == "/media" && getFile(selected) != ".." && isDirectory(selected))
+	if (path == "/roms" && getFile(selected) != ".." && isDirectory(selected))
 		options.push_back((MenuOption){gmenu2x->tr["Umount"], MakeDelegate(this, &BrowseDialog::umountDir)});
 
 	if (path != CARD_ROOT)
 		options.push_back((MenuOption){gmenu2x->tr["Go to"] + " " + CARD_ROOT, MakeDelegate(this, &BrowseDialog::exploreHome)});
 
-	if (path != "/media")
-		options.push_back((MenuOption){gmenu2x->tr["Go to"] + " /media", MakeDelegate(this, &BrowseDialog::exploreMedia)});
+	if (path != "/mnt/roms")
+		options.push_back((MenuOption){gmenu2x->tr["Go to"] + " /mnt/roms", MakeDelegate(this, &BrowseDialog::exploreMedia)});
 
 	if (isFile(selected))
 		options.push_back((MenuOption){gmenu2x->tr["Delete"], MakeDelegate(this, &BrowseDialog::deleteFile)});
@@ -294,7 +294,7 @@ void BrowseDialog::exploreHome() {
 
 void BrowseDialog::exploreMedia() {
 	selected = 0;
-	directoryEnter("/media");
+	directoryEnter("/mnt/roms");
 }
 
 void BrowseDialog::setWallpaper() {
