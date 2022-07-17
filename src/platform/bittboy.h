@@ -124,8 +124,8 @@ int32_t getBatteryLevel() {
 }
 
 uint8_t getBatteryStatus(int32_t val, int32_t min, int32_t max) {
-	if ((val > 10000) || (val < 0)) return 6;
-	if (val > 4000) return 5; // 100%
+	if ((val > 4300) || (val < 0)) return 6; // >100% - max voltage 4320
+	if (val > 4100) return 5; // 100% - fully charged 4150
 	if (val > 3900) return 4; // 80%
 	if (val > 3800) return 3; // 60%
 	if (val > 3700) return 2; // 40%
