@@ -519,7 +519,7 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV mode"], tr["Define default TV mode"], &confStr["tvMode"], &tvMode));
 #endif
 
-	sd.addSetting(new MenuSettingInt(this, tr["Suspend timeout"], tr["Seconds until suspend the device when inactive"], &confInt["backlightTimeout"], 30, 10, 300));
+	sd.addSetting((MenuSettingInt *)(new MenuSettingInt(this, tr["Suspend timeout"], tr["Seconds until suspend the device when inactive"], &confInt["backlightTimeout"], 30, 0, 300))->setOff(9));
 	sd.addSetting(new MenuSettingInt(this, tr["Power timeout"], tr["Minutes to poweroff system if inactive"], &confInt["powerTimeout"], 10, 1, 300));
 	sd.addSetting(new MenuSettingInt(this, tr["Backlight"], tr["Set LCD backlight"], &confInt["backlight"], 70, 1, 100));
 	sd.addSetting(new MenuSettingInt(this, tr["Audio volume"], tr["Set the default audio volume"], &confInt["globalVolume"], 60, 0, 100));
@@ -686,7 +686,10 @@ void GMenu2X::readConfig() {
 	confInt["globalVolume"] = 60;
 	confStr["bgscale"] = "Crop";
 	confStr["skinFont"] = "Custom";
-
+	confInt["backlightTimeout"] = 30;
+	confInt["powerTimeout"] = 10;
+	confInt["backlight"] = 70;
+	
 	confInt["cpuMenu"] = CPU_MENU;
 	confInt["cpuMax"] = CPU_MAX;
 	confInt["cpuMin"] = CPU_MIN;
@@ -716,7 +719,7 @@ void GMenu2X::readConfig() {
 	if (!confStr["wallpaper"].empty() && !file_exists(confStr["wallpaper"])) confStr["wallpaper"] = "";
 	if (confStr["skin"].empty() || !dir_exists("skins/" + confStr["skin"])) confStr["skin"] = "Default";
 
-	evalIntConf(&confInt["backlightTimeout"], 30, 10, 300);
+	evalIntConf(&confInt["backlightTimeout"], 30, 0, 300);
 	evalIntConf(&confInt["powerTimeout"], 10, 1, 300);
 	evalIntConf(&confInt["outputLogs"], 0, 0, 1 );
 	// evalIntConf(&confInt["cpuMax"], 2000, 200, 2000 );
