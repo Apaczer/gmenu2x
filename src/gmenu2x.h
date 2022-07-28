@@ -152,6 +152,7 @@ public:
 
 	~GMenu2X();
 	void quit();
+	void quit_nosave();
 	void main();
 	void settings();
 	void reinit(bool showDialog = false);

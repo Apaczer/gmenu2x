@@ -21,6 +21,7 @@
 #include "settingsdialog.h"
 #include "messagebox.h"
 #include "menu.h"
+#include "gmenu2x.h"
 
 using namespace std;
 
@@ -88,11 +89,22 @@ bool SettingsDialog::exec() {
 					break;
 				case SD_ACTION_CLOSE:
 					loop = false;
-					if (allowCancel && edited()) {
+					if (allowCancel) {
 						MessageBox mb(gmenu2x, gmenu2x->tr["Save changes?"], this->icon);
 						mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
 						mb.setButton(CANCEL,  gmenu2x->tr["No"]);
-						save = (mb.exec() == CONFIRM);
+						int res = mb.exec();
+						switch (res) {
+		case CONFIRM: {
+			gmenu2x->writeConfig();
+			gmenu2x->writeSkinConfig();
+			break;
+		}
+		case CANCEL: {
+			gmenu2x->reinit();
+			break;
+		}
+	}
 					}
 					break;
 				case SD_ACTION_UP:
@@ -122,8 +134,3 @@ void SettingsDialog::addSetting(MenuSetting* set) {
 	voices.push_back(set);
 }
 
-bool SettingsDialog::edited() {
-	for (uint32_t i = 0; i < voices.size(); i++)
-		if (voices[i]->edited()) return true;
-	return false;
-}
