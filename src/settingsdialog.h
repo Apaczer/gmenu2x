@@ -48,7 +48,7 @@ private:
 public:
 	SettingsDialog(GMenu2X *gmenu2x, Touchscreen &ts, const string &title, const string &icon = "skin:sections/settings.png");
 	~SettingsDialog();
-	bool save = false, loop = true, allowCancel = true;
+	bool save = false, loop = true, allowCancel = true,  allowCancel_nomb = true;
 	bool edited();
 	bool exec();
 	void addSetting(MenuSetting* set);

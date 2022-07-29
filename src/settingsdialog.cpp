@@ -79,7 +79,7 @@ bool SettingsDialog::exec() {
 				else if (gmenu2x->input[PAGEUP]) 					action = SD_ACTION_PAGEUP;
 				else if (gmenu2x->input[PAGEDOWN]) 					action = SD_ACTION_PAGEDOWN;
 				else if (gmenu2x->input[SETTINGS]) 					action = SD_ACTION_SAVE;
-				else if (gmenu2x->input[CANCEL] && allowCancel)		action = SD_ACTION_CLOSE;
+				else if (gmenu2x->input[CANCEL] && (allowCancel || allowCancel_nomb))		action = SD_ACTION_CLOSE;
 			}
 
 			switch (action) {
@@ -95,16 +95,27 @@ bool SettingsDialog::exec() {
 						mb.setButton(CANCEL,  gmenu2x->tr["No"]);
 						int res = mb.exec();
 						switch (res) {
-		case CONFIRM: {
-			gmenu2x->writeConfig();
-			gmenu2x->writeSkinConfig();
-			break;
-		}
-		case CANCEL: {
-			gmenu2x->reinit();
-			break;
-		}
-	}
+							case CONFIRM: {
+								gmenu2x->writeConfig();
+								gmenu2x->writeSkinConfig();
+								break;
+							}
+							case CANCEL: {
+								gmenu2x->reinit();
+								break;
+							}
+						}
+					}
+					if (allowCancel_nomb){
+							if (gmenu2x->input[CONFIRM]) {
+								gmenu2x->writeConfig();
+								gmenu2x->writeSkinConfig();
+								break;
+						}
+							else if (gmenu2x->input[CANCEL]) {
+								gmenu2x->reinit();
+								break;
+							}
 					}
 					break;
 				case SD_ACTION_UP:
