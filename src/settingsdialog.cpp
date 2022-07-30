@@ -89,6 +89,17 @@ bool SettingsDialog::exec() {
 					break;
 				case SD_ACTION_CLOSE:
 					loop = false;
+					if (allowCancel_nomb){
+							if (gmenu2x->input[CONFIRM]) {
+								gmenu2x->writeConfig();
+								gmenu2x->writeSkinConfig();
+								break;
+						}
+							else if (gmenu2x->input[CANCEL]) {
+								gmenu2x->reinit();
+								break;
+							}
+					}
 					if (allowCancel) {
 						MessageBox mb(gmenu2x, gmenu2x->tr["Save changes?"], this->icon);
 						mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
@@ -105,17 +116,6 @@ bool SettingsDialog::exec() {
 								break;
 							}
 						}
-					}
-					if (allowCancel_nomb){
-							if (gmenu2x->input[CONFIRM]) {
-								gmenu2x->writeConfig();
-								gmenu2x->writeSkinConfig();
-								break;
-						}
-							else if (gmenu2x->input[CANCEL]) {
-								gmenu2x->reinit();
-								break;
-							}
 					}
 					break;
 				case SD_ACTION_UP:
