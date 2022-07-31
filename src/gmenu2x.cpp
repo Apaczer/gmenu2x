@@ -542,7 +542,7 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &confInt["outputLogs"]));
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
 
-	if (sd.exec() && sd.save) {
+	if (sd.exec() && sd.edited() && sd.save) {
 		if (lang == "English") lang = "";
 		if (confStr["lang"] != lang) {
 			confStr["lang"] = lang;
@@ -597,7 +597,7 @@ void GMenu2X::resetSettings() {
 		sd.addSetting(new MenuSettingBool(this, tr["CPU speed"], tr["Reset link's custom CPU speed back to default"], &reset_cpu));
 	}
 
-	if (sd.exec() && sd.save) {
+	if (sd.exec() && sd.edited() && sd.save) {
 		MessageBox mb(this, tr["Changes will be applied to ALL\napps and GMenuNX. Are you sure?"], "skin:icons/exit.png");
 		mb.setButton(CANCEL, tr["Cancel"]);
 		mb.setButton(MANUAL,  tr["Yes"]);
@@ -1556,7 +1556,7 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingInt(		this, tr["Gamma"],	tr["Gamma value to set when launching this link"], &linkGamma, 0, 100 ));
 #endif
 
-	if (sd.exec() && sd.save) {
+	if (sd.exec() && sd.edited() && sd.save) {
 		ledOn();
 
 		menu->selLinkApp()->setExec(linkExec);

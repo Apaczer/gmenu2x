@@ -90,7 +90,7 @@ bool SettingsDialog::exec() {
 					break;
 				case SD_ACTION_CLOSE:
 					loop = false;
-					if (allowCancel) {
+					if (allowCancel && edited()) {
 						MessageBox mb(gmenu2x, gmenu2x->tr["Save changes?"], this->icon);
 						mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
 						mb.setButton(CANCEL,  gmenu2x->tr["No"]);
@@ -149,3 +149,8 @@ void SettingsDialog::addSetting(MenuSetting* set) {
 	voices.push_back(set);
 }
 
+bool SettingsDialog::edited() {
+	for (uint32_t i = 0; i < voices.size(); i++)
+		if (voices[i]->edited()) return true;
+	return false;
+}
