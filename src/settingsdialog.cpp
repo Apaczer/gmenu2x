@@ -81,6 +81,7 @@ bool SettingsDialog::exec() {
 				else if (gmenu2x->input[SETTINGS]) 					action = SD_ACTION_SAVE;
 				else if (gmenu2x->input[CANCEL] && (allowCancel))		action = SD_ACTION_CLOSE;
 				else if (gmenu2x->input[CANCEL] && (allowCancel_nomb))		action = SD_ACTION_CLOSE_NOMB;
+				else if (gmenu2x->input[CANCEL] && (allowCancel_link))		action = SD_ACTION_CLOSE_LINK;
 			}
 
 			switch (action) {
@@ -120,6 +121,14 @@ bool SettingsDialog::exec() {
 								gmenu2x->reinit();
 								break;
 							}
+					}
+				case SD_ACTION_CLOSE_LINK:
+					loop = false;
+					if (allowCancel_link && edited()) {
+						MessageBox mb(gmenu2x, gmenu2x->tr["Save changes?"], this->icon);
+						mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
+						mb.setButton(CANCEL,  gmenu2x->tr["No"]);
+						save = (mb.exec() == CONFIRM);
 					}
 					break;
 				case SD_ACTION_UP:
