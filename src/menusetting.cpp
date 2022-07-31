@@ -24,6 +24,8 @@ MenuSetting::MenuSetting(GMenu2X *gmenu2x, const string &title, const string &de
 gmenu2x(gmenu2x), buttonBox(gmenu2x), title(title), description(description) {
 	btn = new IconButton(gmenu2x, "start", gmenu2x->tr["Save"]);
 	buttonBox.add(btn);
+	btn = new IconButton(gmenu2x, "b", gmenu2x->tr["Exit"]);
+	buttonBox.add(btn);
 }
 
 MenuSetting::~MenuSetting() {}
