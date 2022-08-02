@@ -175,6 +175,7 @@ void GMenu2X::quit() {
 	s->flip(); s->flip(); s->flip(); // flush buffers
 
 	powerManager->clearTimer();
+	get_date_time(); // update sw clock
 	writeConfig();
 
 	s->free();
@@ -206,6 +207,8 @@ void GMenu2X::main() {
 	hwInit();
 
 	chdir(exe_path().c_str());
+	
+	init_date_time();
 
 	readConfig();
 
