@@ -528,7 +528,7 @@ void GMenu2X::settings() {
 
 	string prevDateTime = confStr["datetime"] = get_date_time();
 	string newDateTime = prevDateTime;
-	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &newDateTime));
+	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &confStr["datetime"]));
 	sd.addSetting(new MenuSettingDir(this, tr["Home path"],	tr["Set as home for launched links"], &confStr["homePath"]));
 
 #if defined(HW_UDC)
