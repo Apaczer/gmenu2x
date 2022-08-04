@@ -781,11 +781,11 @@ void GMenu2X::writeConfig() {
 				// deprecated
 				curr->first == "sectionBarPosition" ||
 				curr->first == "tvoutEncoding" ||
-				curr->first == "datetime" ||
 				curr->first == "explorerLastDir" ||
 				curr->first == "defaultDir" ||
 
 				// defaults
+				(curr->first == "datetime" curr->second == __BUILDTIME__) ||
 				(curr->first == "homePath" && curr->second == CARD_ROOT) ||
 				(curr->first == "skin" && curr->second == "Default") ||
 				(curr->first == "previewMode" && curr->second == "Miniature") ||
