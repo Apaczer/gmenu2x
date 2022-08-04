@@ -710,6 +710,7 @@ void GMenu2X::readConfig() {
 
 	// Defaults *** Sync with default values in writeConfig
 	confInt["saveSelection"] = 1;
+	confStr["datetime"] = __BUILDTIME__;
 	confInt["skinBackdrops"] = 0;
 	confStr["homePath"] = CARD_ROOT;
 	confInt["globalVolume"] = 60;
