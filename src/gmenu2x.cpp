@@ -527,7 +527,6 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
 
 	string prevDateTime = confStr["datetime"] = get_date_time();
-	string newDateTime = prevDateTime;
 	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &confStr["datetime"]));
 	sd.addSetting(new MenuSettingDir(this, tr["Home path"],	tr["Set as home for launched links"], &confStr["homePath"]));
 
@@ -571,9 +570,9 @@ void GMenu2X::settings() {
 			setGamma(confInt["gamma"]);
 		}
 #endif
-
-		if (prevDateTime != newDateTime) {
-			set_date_time(newDateTime.c_str());
+		string freshDateTime = confStr["datetime"];
+		if (prevDateTime != confStr["datetime"]) {
+			set_date_time(freshDateTime.c_str());
 			reinit();
 		}
 	}
@@ -785,7 +784,7 @@ void GMenu2X::writeConfig() {
 				curr->first == "defaultDir" ||
 
 				// defaults
-				(curr->first == "datetime" curr->second == __BUILDTIME__) ||
+				(curr->first == "datetime" && curr->second.empty()) ||
 				(curr->first == "homePath" && curr->second == CARD_ROOT) ||
 				(curr->first == "skin" && curr->second == "Default") ||
 				(curr->first == "previewMode" && curr->second == "Miniature") ||
