@@ -164,6 +164,10 @@ int main(int /*argc*/, char * /*argv*/[]) {
 }
 
 GMenu2X::~GMenu2X() {
+	confStr["datetime"] = get_date_time();
+	
+	writeConfig();
+	
 	quit();
 	delete menu;
 	delete s;
@@ -176,11 +180,7 @@ void GMenu2X::quit() {
 
 	powerManager->clearTimer();
 	get_date_time(); // update sw clock
-	string prevDateTime = get_date_time();
-	string newDateTime = prevDateTime;	
-	if (prevDateTime != newDateTime) {
-			set_date_time(newDateTime.c_str());
-		}
+	confStr["datetime"] = get_date_time();
 	writeConfig();
 
 	s->free();
@@ -215,10 +215,10 @@ void GMenu2X::main() {
 
 	init_date_time();
 
-	string prevDateTime = get_date_time();
-	string newDateTime = prevDateTime;	
-	if (prevDateTime != newDateTime) {
-			set_date_time(newDateTime.c_str());
+	string prevDateTime = confStr["datetime"];
+	string newDateTime = get_date_time();	
+	if (prevDateTime > newDateTime) {
+			set_date_time(prevDateTime.c_str());
 		}
 
 	readConfig();
@@ -526,7 +526,7 @@ void GMenu2X::settings() {
 
 	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
 
-	string prevDateTime = get_date_time();
+	string prevDateTime = confStr["datetime"] = get_date_time();
 	string newDateTime = prevDateTime;
 	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &newDateTime));
 	sd.addSetting(new MenuSettingDir(this, tr["Home path"],	tr["Set as home for launched links"], &confStr["homePath"]));
