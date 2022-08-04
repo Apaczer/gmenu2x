@@ -176,6 +176,11 @@ void GMenu2X::quit() {
 
 	powerManager->clearTimer();
 	get_date_time(); // update sw clock
+	string prevDateTime = get_date_time();
+	string newDateTime = prevDateTime;	
+	if (prevDateTime != newDateTime) {
+			set_date_time(newDateTime.c_str());
+		}
 	writeConfig();
 
 	s->free();
@@ -207,8 +212,14 @@ void GMenu2X::main() {
 	hwInit();
 
 	chdir(exe_path().c_str());
-	
+
 	init_date_time();
+
+	string prevDateTime = get_date_time();
+	string newDateTime = prevDateTime;	
+	if (prevDateTime != newDateTime) {
+			set_date_time(newDateTime.c_str());
+		}
 
 	readConfig();
 
