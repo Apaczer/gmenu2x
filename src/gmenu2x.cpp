@@ -164,6 +164,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 }
 
 GMenu2X::~GMenu2X() {
+	get_date_time(); // update sw clock
 	confStr["datetime"] = get_date_time();
 	
 	writeConfig();
@@ -213,14 +214,6 @@ void GMenu2X::main() {
 
 	chdir(exe_path().c_str());
 
-	init_date_time();
-
-	string prevDateTime = confStr["datetime"];
-	string newDateTime = get_date_time();	
-	if (prevDateTime > newDateTime) {
-			set_date_time(prevDateTime.c_str());
-		}
-
 	readConfig();
 
 	setScaleMode(0);
@@ -230,6 +223,11 @@ void GMenu2X::main() {
 
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 	setenv("SDL_NOMOUSE", "1", 1);
+	string prevDateTime = confStr["datetime"];	
+	string freshDateTime = get_date_time();
+		if (prevDateTime > freshDateTime) {
+			set_date_time(prevDateTime.c_str());
+		}
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) < 0) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
