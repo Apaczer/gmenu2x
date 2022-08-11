@@ -505,6 +505,33 @@ void GMenu2X::initMenu() {
 	menu->setLinkIndex(confInt["link"]);
 }
 
+void GMenu2X::settings_date() {
+	powerManager->clearTimer();
+
+	// int prevgamma = confInt["gamma"];
+
+	vector<string> opFactory;
+	opFactory.push_back(">>");
+	string tmp = ">>";
+
+	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
+	sd.allowCancel = true;
+
+	string prevDateTime = confStr["datetime"] = get_date_time();
+	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &confStr["datetime"]));
+
+	if (sd.exec() && sd.edited() && sd.save) {
+
+		writeConfig();
+
+		string freshDateTime = confStr["datetime"];
+		if (prevDateTime != confStr["datetime"]) {
+			set_date_time(freshDateTime.c_str());
+			reinit();
+		}
+	}
+}
+
 void GMenu2X::settings() {
 	powerManager->clearTimer();
 

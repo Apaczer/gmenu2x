@@ -155,6 +155,7 @@ public:
 	void quit_nosave();
 	void main();
 	void settings();
+	void settings_date();
 	void reinit(bool showDialog = false);
 	void poweroffDialog();
 	void resetSettings();
