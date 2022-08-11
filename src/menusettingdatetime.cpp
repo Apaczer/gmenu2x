@@ -128,7 +128,7 @@ void MenuSettingDateTime::rightComponent() {
 }
 
 void MenuSettingDateTime::setYear(int16_t i) {
-	iyear = constrain(i, 1970, 2100);
+	iyear = constrain(i, 2022, 2100);
 	stringstream ss;
 	ss << iyear;
 	ss >> year;
