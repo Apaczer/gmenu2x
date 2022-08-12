@@ -317,14 +317,14 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 
 	int wasActive = 0;
 
-	while (input[POWER]) { // POWER HOLD
-		wasActive = POWER;
+	while (input[MENU]) { // MENU HOLD
+		wasActive = MENU;
 
 		input.update();
 
 		if (SDL_GetTicks() - button_hold > 1000) {
 			wasActive = 0;
-			powerManager->doSuspend(1);
+			settings_date();
 		}
 	}
 
@@ -523,12 +523,11 @@ void GMenu2X::settings_date() {
 	if (sd.exec() && sd.edited() && sd.save) {
 
 		writeConfig();
-
+		}
 		string freshDateTime = confStr["datetime"];
 		if (prevDateTime != confStr["datetime"]) {
 			set_date_time(freshDateTime.c_str());
 			reinit();
-		}
 	}
 }
 
@@ -581,6 +580,8 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
+		writeConfig();
+	}
 		if (lang == "English") lang = "";
 		if (confStr["lang"] != lang) {
 			confStr["lang"] = lang;
@@ -588,7 +589,7 @@ void GMenu2X::settings() {
 		}
 
 		setBacklight(confInt["backlight"], false);
-		writeConfig();
+		
 
 #if defined(TARGET_GP2X)
 		if (prevgamma != confInt["gamma"]) {
@@ -600,7 +601,7 @@ void GMenu2X::settings() {
 			set_date_time(freshDateTime.c_str());
 			reinit();
 		}
-	}
+	
 	powerManager->setSuspendTimeout(confInt["backlightTimeout"]);
 	powerManager->setPowerTimeout(confInt["powerTimeout"]);
 }
