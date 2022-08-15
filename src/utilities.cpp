@@ -390,6 +390,12 @@ void init_date_time() {
 	}
 }
 
+void build_date_time() {
+	const uint32_t t = __BUILDTIME__;
+
+		sync_date_time(t);
+}
+
 void set_date_time(const char* timestamp) {
 	int imonth, iday, iyear, ihour, iminute;
 

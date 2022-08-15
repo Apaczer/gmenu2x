@@ -228,6 +228,8 @@ void GMenu2X::main() {
 		if (prevDateTime > freshDateTime) {
 			set_date_time(prevDateTime.c_str());
 		}
+		else
+      build_date_time();
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_JOYSTICK) < 0) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
