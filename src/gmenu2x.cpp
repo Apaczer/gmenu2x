@@ -317,8 +317,8 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 
 	int wasActive = 0;
 
-	while (input[MENU]) { // MENU HOLD
-		wasActive = MENU;
+	while (input[MODIFIER]) { // MODIFIER HOLD
+		wasActive = MODIFIER;
 
 		input.update();
 
