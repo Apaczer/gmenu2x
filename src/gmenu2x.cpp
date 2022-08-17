@@ -794,7 +794,6 @@ void GMenu2X::readConfig() {
 }
 
 void GMenu2X::writeConfig() {
-	ledOn();
 	if (confInt["saveSelection"] && menu != NULL) {
 		confInt["section"] = menu->selSectionIndex();
 		confInt["link"] = menu->selLinkIndex();
@@ -874,16 +873,12 @@ void GMenu2X::writeConfig() {
 		cfg.close();
 	}
 	sync();
-
-	ledOff();
 }
 
 void GMenu2X::writeSkinConfig() {
 	string skinconf = exe_path() + "/skins/" + confStr["skin"] + "/skin.conf";
 	ofstream inf(skinconf.c_str());
 	if (!inf.is_open()) return;
-
-	ledOn();
 
 	for (ConfStrHash::iterator curr = skinConfStr.begin(); curr != skinConfStr.end(); curr++) {
 		if (curr->first.empty() || curr->second.empty()) {
@@ -929,7 +924,6 @@ void GMenu2X::writeSkinConfig() {
 	inf.close();
 
 	sync();
-	ledOff();
 }
 
 void GMenu2X::setSkin(string skin, bool clearSC) {
