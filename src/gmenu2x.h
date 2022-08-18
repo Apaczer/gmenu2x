@@ -157,6 +157,7 @@ public:
 	void settings();
 	void settings_date();
 	void reinit(bool showDialog = false);
+	void reinit_save();
 	void poweroffDialog();
 	void resetSettings();
 	void cpuSettings();

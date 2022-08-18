@@ -1392,6 +1392,14 @@ void GMenu2X::reinit(bool showDialog) {
 	execlp("./gmenu2x", "./gmenu2x", NULL);
 }
 
+void GMenu2X::reinit_save() {
+
+	quit();
+	WARNING("Re-launching gmenu2x");
+	chdir(exe_path().c_str());
+	execlp("./gmenu2x", "./gmenu2x", NULL);
+}
+
 void GMenu2X::poweroffDialog() {
 #if !defined(TARGET_BITTBOY)
 	MessageBox mb(this, tr["Poweroff or reboot the device?"], "skin:icons/exit.png");
