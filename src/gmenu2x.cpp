@@ -527,7 +527,6 @@ void GMenu2X::settings_date() {
 		string freshDateTime = confStr["datetime"];
 		if (prevDateTime != confStr["datetime"]) {
 			set_date_time(freshDateTime.c_str());
-			reinit();
 	}
 }
 
@@ -599,7 +598,6 @@ void GMenu2X::settings() {
 		string freshDateTime = confStr["datetime"];
 		if (prevDateTime != confStr["datetime"]) {
 			set_date_time(freshDateTime.c_str());
-			reinit();
 		}
 	
 	powerManager->setSuspendTimeout(confInt["backlightTimeout"]);
