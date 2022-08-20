@@ -523,11 +523,12 @@ void GMenu2X::settings_date() {
 	if (sd.exec() && sd.edited() && sd.save) {
 
 		writeConfig();
-		}
+	}
 		string freshDateTime = confStr["datetime"];
 		if (prevDateTime != confStr["datetime"]) {
 			set_date_time(freshDateTime.c_str());
-	}
+			powerManager->doSuspend(0);
+			}
 }
 
 void GMenu2X::settings() {
@@ -598,6 +599,7 @@ void GMenu2X::settings() {
 		string freshDateTime = confStr["datetime"];
 		if (prevDateTime != confStr["datetime"]) {
 			set_date_time(freshDateTime.c_str());
+			powerManager->doSuspend(0);
 		}
 	
 	powerManager->setSuspendTimeout(confInt["backlightTimeout"]);
