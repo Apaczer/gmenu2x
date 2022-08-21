@@ -514,11 +514,11 @@ void GMenu2X::settings_date() {
 	opFactory.push_back(">>");
 	string tmp = ">>";
 
-	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
+	SettingsDialog sd(this, ts, tr["SW Clock"], "skin:icons/clock.png");
 	sd.allowCancel = true;
 
 	string prevDateTime = confStr["datetime"] = get_date_time();
-	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &confStr["datetime"]));
+	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's software clock"], &confStr["datetime"]));
 
 	if (sd.exec() && sd.edited() && sd.save) {
 
