@@ -16,6 +16,7 @@ Controls
 * POWER: Bring up Poweroff dialog.
 * SELECT + START: Take a screenshot;
 * START (hold): Toggle Suspend mode;
+* CONFIRM (hold): hover over LinkApp to launch app directly or with File Explorer
 * TV-Out: If the device supports, (dis)connect the TV-out jack to toggle TV-out signal.
 
 In settings:
