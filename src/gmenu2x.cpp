@@ -618,7 +618,7 @@ void GMenu2X::resetSettings() {
 		reset_filter = false,
 		reset_directory = false,
 		reset_boxart = false;
-		/* reset_cpu = false; */
+		reset_cpu = false;
 
 	SettingsDialog sd(this, ts, tr["Reset settings"], "skin:icons/configure.png");
 	sd.allowCancel_link_nomb = true;
@@ -633,9 +633,9 @@ void GMenu2X::resetSettings() {
 	sd.addSetting(new MenuSettingBool(this, tr["Directories"], tr["Unset link's selector directory"], &reset_directory));
 	sd.addSetting(new MenuSettingBool(this, tr["Box art"], tr["Unset link's selector box art path"], &reset_boxart));
 	
-	// if (CPU_MAX != CPU_MIN) {
-	// 	sd.addSetting(new MenuSettingBool(this, tr["CPU speed"], tr["Reset link's custom CPU speed back to default"], &reset_cpu));
-	// }
+	if (CPU_MAX != CPU_MIN) {
+		sd.addSetting(new MenuSettingBool(this, tr["CPU speed"], tr["Reset link's custom CPU speed back to default"], &reset_cpu));
+	  }
 
 	if (sd.exec() && sd.edited() && sd.save) {
 		MessageBox mb(this, tr["Changes will be applied to ALL\napps and GMenuNX. Are you sure?"], "skin:icons/exit.png");
@@ -650,7 +650,7 @@ void GMenu2X::resetSettings() {
 				bool islink = menu->selLinkApp() != NULL;
 				// WARNING("APP: %d %d %d %s", s, l, islink, menu->sectionLinks(s)->at(l)->getTitle().c_str());
 				if (!islink) continue;
-				// if (reset_cpu)			menu->selLinkApp()->setCPU();
+				if (reset_cpu)			menu->selLinkApp()->setCPU();
 				if (reset_icon)			menu->selLinkApp()->setIcon("");
 				// if (reset_homedir)		menu->selLinkApp()->setHomeDir("");
 				if (reset_manual)		menu->selLinkApp()->setManual("");
@@ -659,7 +659,7 @@ void GMenu2X::resetSettings() {
 				if (reset_directory) 	menu->selLinkApp()->setSelectorDir("");
 				if (reset_boxart) 		menu->selLinkApp()->setSelectorScreens("");
 				if (reset_backdrop) 	menu->selLinkApp()->setBackdrop("");
-				if (reset_icon || reset_manual || reset_parameter || reset_backdrop || reset_filter || reset_directory || reset_boxart )
+				if (reset_cpu || reset_icon || reset_manual || reset_parameter || reset_backdrop || reset_filter || reset_directory || reset_boxart )
 					menu->selLinkApp()->save();
 			}
 		}
