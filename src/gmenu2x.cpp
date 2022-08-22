@@ -617,7 +617,7 @@ void GMenu2X::resetSettings() {
 		reset_backdrop = false,
 		reset_filter = false,
 		reset_directory = false,
-		reset_boxart = false;
+		reset_boxart = false,
 		reset_cpu = false;
 
 	SettingsDialog sd(this, ts, tr["Reset settings"], "skin:icons/configure.png");
