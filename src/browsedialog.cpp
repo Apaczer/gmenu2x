@@ -206,6 +206,7 @@ bool BrowseDialog::exec() {
 			selected = (rand() % fileCount()) + dirCount();
 		} else if (gmenu2x->input[MENU]) {
 			contextMenu();
+			preview = getPreview(selected);
 		}
 	if (gmenu2x->input[UP] || gmenu2x->input[DOWN] || gmenu2x->input[LEFT] || gmenu2x->input[RIGHT] || gmenu2x->input[PAGEUP] || gmenu2x->input[PAGEDOWN] || gmenu2x->input[MANUAL]) {
 			preview = getPreview(selected);
