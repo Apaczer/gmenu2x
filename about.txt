@@ -57,6 +57,7 @@ Beta testers
 Goemon4, PokeParadox, PSyMastR and Tripmonkey_uk (GP2X)
 Yann Vaillant (WIZ)
 msx, jbanes, jutley and scooterpsu (RetroFW)
+salvacam (MiyooCFW)
 
 Translators
 ----
