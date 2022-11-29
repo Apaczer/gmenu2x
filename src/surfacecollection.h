@@ -22,10 +22,13 @@
 
 #include <string>
 #include <tr1/unordered_map>
+using std::string;
+
+extern string dataPath, homePath;
 
 class Surface;
 
-typedef std::tr1::unordered_map<std::string, Surface *> SurfaceHash;
+typedef std::tr1::unordered_map<string, Surface *> SurfaceHash;
 
 /**
 Hash Map of surfaces that loads surfaces not already loaded and reuses already loaded ones.
@@ -35,29 +38,20 @@ Hash Map of surfaces that loads surfaces not already loaded and reuses already l
 class SurfaceCollection {
 private:
 	SurfaceHash surfaces;
-	std::string skin;
+	string skin = dataPath + "/skins/Default";
 
 public:
-	SurfaceCollection(
-			bool defaultAlpha = true, const std::string &skin = "default");
-	~SurfaceCollection();
-
-	void setSkin(const std::string &skin);
-	std::string getSkinFilePath(const std::string &file);
-
-	bool defaultAlpha;
+	SurfaceCollection();
+	void setSkin(const string &skin);
+	string getSkinFilePath(const string &file, bool falback = true);
 	void debug();
-
-	Surface *add(Surface *s, const std::string &path);
-	Surface *add(const std::string &path, bool alpha=true);
-	Surface *addSkinRes(const std::string &path, bool alpha=true);
-	void     del(const std::string &path);
-	void     clear();
-	void     move(const std::string &from, const std::string &to);
-	bool     exists(const std::string &path);
-
-	Surface *operator[](const std::string &);
-	Surface *skinRes(const std::string &);
+	Surface *add(Surface *s, const string &path);
+	Surface *add(string path, string key="");
+	bool del(const string &key);
+	void clear();
+	void move(const string &from, const string &to);
+	bool exists(const string &path);
+	Surface *operator[](const string &);
 };
 
 #endif

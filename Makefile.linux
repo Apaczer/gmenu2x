@@ -1,0 +1,4 @@
+CFLAGS += -O0 -ggdb -g -pg
+CFLAGS += -DTARGET_LINUX
+
+include gmenunx.mk

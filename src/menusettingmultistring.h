@@ -31,6 +31,7 @@ using fastdelegate::MakeDelegate;
 
 typedef FastDelegate0<uint32_t> msms_onchange_t;
 typedef FastDelegate0<> msms_onselect_t;
+typedef FastDelegate1<std::string, std::string> msms_formatter_t;
 
 class MenuSettingMultiString : public MenuSettingStringBase {
 private:
@@ -38,7 +39,7 @@ private:
 		/* never called because manageInput() is overridden */
 	}
 
-	const std::vector<std::string> *choices;
+	const std::vector<std::string> choices;
 	int selected;
 
 	void incSel();
@@ -47,20 +48,16 @@ private:
 
 	msms_onchange_t onChange;
 	msms_onselect_t onSelect; // variable to store function pointer type
+	msms_formatter_t formatter;
 
 public:
-	MenuSettingMultiString(
-			GMenu2X *gmenu2x, const std::string &title,
-			const std::string &description, std::string *value,
-			const std::vector<std::string> *choices,
-			msms_onchange_t onChange = 0, msms_onselect_t onSelect = 0
-			);
+	MenuSettingMultiString(GMenu2X *gmenu2x, const std::string &title, const std::string &description, std::string *value, const std::vector<std::string> choices, msms_onchange_t onChange = 0, msms_onselect_t onSelect = 0, msms_formatter_t formatter = 0);
 
 	uint32_t voidAction() { return 0; };
 
-
 	virtual ~MenuSettingMultiString() {};
 	virtual uint32_t manageInput();
+	virtual void draw(int y);
 };
 
 #endif

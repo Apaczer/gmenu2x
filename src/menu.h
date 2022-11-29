@@ -40,32 +40,46 @@ Handles the menu structure
 class Menu {
 private:
 	GMenu2X *gmenu2x;
-	int iSection, iLink;
-	uint32_t iFirstDispSection, iFirstDispRow;
+	int iSectionIndex, iLinkIndex;
+	int32_t firstDispSection, firstDispLink;
 	vector<string> sections;
 	vector<linklist> links;
 
-	void readLinks();
-	void freeLinks();
+	const int iconPadding = 4;
+	uint32_t section_changed, icon_changed;
+
+	Surface *iconSD, *iconManual, *iconCPU, *iconMenu, *iconL, *iconR, *iconBGoff, *iconBGon;
+	Surface *iconBrightness[6], *iconBattery[7], *iconVolume[3];
+
+	int8_t brightnessIcon = 5;
+	string iconDescription = "";
+
+	SDL_TimerID sectionChangedTimer, iconChangedTimer;
+
+	void drawIcon(int i, int ix, int iy, bool selected);
+	void drawList();
+	void drawGrid();
+	void drawCoverFlow();
+	void drawSectionBar();
+	void drawStatusBar();
+	void drawIconTray();
 
 public:
 	Menu(GMenu2X *gmenu2x);
 	~Menu();
+	uint32_t linkCols, linkRows, linkWidth, linkHeight, linkSpacing = 4;
 
 	linklist *sectionLinks(int i = -1);
 
-	int selSectionIndex();
 	int sectionNumItems();
 
-	const string &selSection();
-	void decSectionIndex();
-	void incSectionIndex();
+	const string getSectionName();
 	void setSectionIndex(int i);
-	uint32_t firstDispSection();
-	uint32_t firstDispRow();
 
+	void readSections();
+	void readLinks();
 	bool addActionLink(uint32_t section, const string &title, fastdelegate::FastDelegate0<> action, const string &description="", const string &icon="");
-	bool addLink(string path, string file, string section="");
+	bool addLink(string exec);
 	bool addSection(const string &sectionName);
 	void deleteSelectedLink();
 	void deleteSelectedSection();
@@ -73,9 +87,8 @@ public:
 	void loadIcons();
 	bool linkChangeSection(uint32_t linkIndex, uint32_t oldSectionIndex, uint32_t newSectionIndex);
 
-	int selLinkIndex();
-	Link *selLink();
-	LinkApp *selLinkApp();
+	Link *getLink();
+	LinkApp *getLinkApp();
 	void pageUp();
 	void pageDown();
 	void linkLeft();
@@ -88,9 +101,15 @@ public:
 
 	const vector<string> &getSections() { return sections; }
 	void renameSection(int index, const string &name);
-	int getSectionIndex(const string &name);
-	const string getSectionIcon(int i);
-	const string getSectionLetter(int i);
+	int getSectionIndexByName(const string &name);
+	const string getSectionIcon(int i = -1);
+
+	void initLayout();
+	void exec();
+
+	int getSectionIndex() { return iSectionIndex; }
+	int getLinkIndex() { return iLinkIndex; }
+	const string &getSection() { return sections[iSectionIndex]; }
 };
 
 #endif

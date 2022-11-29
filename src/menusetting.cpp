@@ -20,14 +20,16 @@
 #include "menusetting.h"
 #include "gmenu2x.h"
 
-MenuSetting::MenuSetting(GMenu2X *gmenu2x, const string &title, const string &description)
-	: gmenu2x(gmenu2x), buttonBox(gmenu2x), title(title), description(description) {
+MenuSetting::MenuSetting(GMenu2X *gmenu2x, const string &title, const string &description):
+gmenu2x(gmenu2x), buttonBox(gmenu2x), title(title), description(description) {
+	btn = new IconButton(gmenu2x, "start", _("Save"));
+	buttonBox.add(btn);
 }
 
 MenuSetting::~MenuSetting() {}
 
 void MenuSetting::draw(int y) {
-	gmenu2x->s->write( gmenu2x->font, title, 5, y + gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->s->write(gmenu2x->font, title, 5, y + gmenu2x->font->height() / 2, VAlignMiddle);
 }
 
 void MenuSetting::handleTS() {
