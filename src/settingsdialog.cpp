@@ -20,10 +20,21 @@
 
 #include "settingsdialog.h"
 #include "messagebox.h"
-#include "menu.h"
 
-SettingsDialog::SettingsDialog(GMenu2X *gmenu2x, Touchscreen &ts, const string &title, const string &icon):
-Dialog(gmenu2x, title, "", icon), ts(ts) {}
+using namespace std;
+
+SettingsDialog::SettingsDialog(
+		GMenu2X *gmenu2x_, Touchscreen &ts_,
+		const string &title, const string &icon)
+	: Dialog(gmenu2x_)
+	, ts(ts_)
+	, title(title)
+{
+	if (icon != "" && gmenu2x->sc[icon] != NULL)
+		this->icon = icon;
+	else
+		this->icon = "icons/generic.png";
+}
 
 SettingsDialog::~SettingsDialog() {
 	for (uint32_t i = 0; i < voices.size(); i++)
@@ -33,21 +44,22 @@ SettingsDialog::~SettingsDialog() {
 bool SettingsDialog::exec() {
 	bool ts_pressed = false, inputAction = false;
 	uint32_t i, iY, firstElement = 0, action = SD_NO_ACTION, rowHeight, numRows;
+	voices[selected]->adjustInput();
 
-	while (loop) {
-		gmenu2x->menu->initLayout();
-		gmenu2x->font->setSize(gmenu2x->skinConfInt["fontSize"])->setColor(gmenu2x->skinConfColor["font"])->setOutlineColor(gmenu2x->skinConfColor["fontOutline"]);
-		gmenu2x->titlefont->setSize(gmenu2x->skinConfInt["fontSizeTitle"])->setColor(gmenu2x->skinConfColor["fontAlt"])->setOutlineColor(gmenu2x->skinConfColor["fontAltOutline"]);
-		rowHeight = gmenu2x->font->height() + 1;
+	while (!close) {
+		gmenu2x->initLayout();
+		gmenu2x->font->setSize(gmenu2x->skinConfInt["fontSize"])->setColor(gmenu2x->skinConfColors[COLOR_FONT])->setOutlineColor(gmenu2x->skinConfColors[COLOR_FONT_OUTLINE]);
+		gmenu2x->titlefont->setSize(gmenu2x->skinConfInt["fontSizeTitle"])->setColor(gmenu2x->skinConfColors[COLOR_FONT_ALT])->setOutlineColor(gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+
+		rowHeight = gmenu2x->font->getHeight() + 1;
 		numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 
-		if (selected < 0) selected = voices.size() - 1;
-		if (selected >= voices.size()) selected = 0;
-		gmenu2x->setInputSpeed();
-		voices[selected]->adjustInput();
+		this->bg->blit(gmenu2x->s,0,0);
 
-		this->description = voices[selected]->getDescription();
-		drawDialog(gmenu2x->s);
+		// redraw to due to realtime skin
+		drawTopBar(gmenu2x->s, title, voices[selected]->getDescription(), icon);
+		drawBottomBar(gmenu2x->s);
+		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
 
 		//Selection
 		if (selected >= firstElement + numRows) firstElement = selected - numRows;
@@ -56,7 +68,7 @@ bool SettingsDialog::exec() {
 		iY = gmenu2x->listRect.y + 1;
 		for (i = firstElement; i < voices.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 			if (i == selected) {
-				gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColor["selectionBg"]);
+				gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColors[COLOR_SELECTION_BG]);
 				voices[selected]->drawSelected(iY);
 			}
 			voices[i]->draw(iY);
@@ -70,34 +82,39 @@ bool SettingsDialog::exec() {
 			if (gmenu2x->inputCommonActions(inputAction)) continue;
 
 			action = SD_NO_ACTION;
-			if (!(action = voices[selected]->manageInput())) {
-				if (gmenu2x->input[UP]) 							action = SD_ACTION_UP;
-				else if (gmenu2x->input[DOWN]) 						action = SD_ACTION_DOWN;
-				else if (gmenu2x->input[PAGEUP]) 					action = SD_ACTION_PAGEUP;
-				else if (gmenu2x->input[PAGEDOWN]) 					action = SD_ACTION_PAGEDOWN;
-				else if (gmenu2x->input[SETTINGS]) 					action = SD_ACTION_SAVE;
-				else if (gmenu2x->input[CANCEL] && allowCancel)		action = SD_ACTION_CLOSE;
-			}
-
+			if ( gmenu2x->input[SETTINGS] ) action = SD_ACTION_SAVE;
+			else if ( gmenu2x->input[CANCEL] && allowCancel) action = SD_ACTION_CLOSE;
+			else if ( gmenu2x->input[UP      ] ) action = SD_ACTION_UP;
+			else if ( gmenu2x->input[DOWN    ] ) action = SD_ACTION_DOWN;
+			else if ( gmenu2x->input[PAGEUP  ] ) action = SD_ACTION_PAGEUP;
+			else if ( gmenu2x->input[PAGEDOWN] ) action = SD_ACTION_PAGEDOWN;
+			else action = voices[selected]->manageInput();
 			switch (action) {
 				case SD_ACTION_SAVE:
 					save = true;
-					loop = false;
+					close = true;
 					break;
 				case SD_ACTION_CLOSE:
-					loop = false;
-					if (allowCancel && edited()) {
-						MessageBox mb(gmenu2x, _("Save changes?"), this->icon);
-						mb.setButton(CONFIRM, _("Yes"));
-						mb.setButton(CANCEL,  _("No"));
-						save = (mb.exec() == CONFIRM);
-					}
+					close = true;
+					if (allowCancel) {
+						if (edited()) {
+							MessageBox mb(gmenu2x, gmenu2x->tr["Save changes?"], this->icon);
+							mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
+							mb.setButton(CANCEL,  gmenu2x->tr["No"]);
+							save = (mb.exec() == CONFIRM);
+						}}
 					break;
 				case SD_ACTION_UP:
-					selected--;
+					selected -= 1;
+					if (selected < 0) selected = voices.size() - 1;
+					gmenu2x->setInputSpeed();
+					voices[selected]->adjustInput();
 					break;
 				case SD_ACTION_DOWN:
-					selected++;
+					selected += 1;
+					if (selected >= voices.size()) selected = 0;
+					gmenu2x->setInputSpeed();
+					voices[selected]->adjustInput();
 					break;
 				case SD_ACTION_PAGEUP:
 					selected -= numRows;

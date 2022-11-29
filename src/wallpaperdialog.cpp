@@ -19,100 +19,115 @@
  ***************************************************************************/
 
 #include "wallpaperdialog.h"
-#include "messagebox.h"
+#include "filelister.h"
 #include "debug.h"
 
-WallpaperDialog::WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon):
-Dialog(gmenu2x, title, description, icon) {}
+using namespace std;
 
-WallpaperDialog::~WallpaperDialog() {
-	for (uint32_t i = 0; i < wallpapers.size(); i++) {
-		gmenu2x->sc.del(wallpapers[i]);
-	}
+WallpaperDialog::WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
+	: Dialog(gmenu2x) {
+	this->title = title;
+	this->description = description;
+	this->icon = icon;
 }
 
-bool WallpaperDialog::exec() {
-	bool inputAction = false;
+bool WallpaperDialog::exec()
+{
+	bool close = false, result = true, inputAction = false;
+
 	uint32_t i, iY, firstElement = 0;
-	uint32_t rowHeight = gmenu2x->font->height() + 1;
-	uint32_t numRows = (gmenu2x->listRect.h - 2) / rowHeight - 1;
+	uint32_t rowHeight = gmenu2x->font->getHeight() + 1;
+	uint32_t numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 	int32_t selected = 0;
 
-	this->showFullPath = true;
-	this->showDirectories = false;
-	this->showFiles = true;
-
-	setFilter(".png,.jpg,.jpeg,.bmp");
-	browse(data_path("skins/Default/wallpapers"));
-
-	wallpapers = getFiles();
-
-	if (gmenu2x->confStr["skin"] != data_path("skins/Default")) {
-		browse(gmenu2x->confStr["skin"] + "/wallpapers");
-		wallpapers.insert(wallpapers.end(), getFiles().begin(), getFiles().end());
+	FileLister fl("skins/" + gmenu2x->confStr["skin"] + "/wallpapers");
+	fl.setFilter(".png,.jpg,.jpeg,.bmp");
+	vector<string> wallpapers;
+	if (dirExists("skins/" + gmenu2x->confStr["skin"] + "/wallpapers")) {
+		fl.browse();
+		wallpapers = fl.getFiles();
 	}
+	if (gmenu2x->confStr["skin"] != "Default") {
+		fl.setPath("skins/Default/wallpapers", true);
+		for (uint32_t i = 0; i < fl.getFiles().size(); i++)
+			wallpapers.push_back(fl.getFiles()[i]);
+	}
+
+	wallpaper = base_name(gmenu2x->confStr["wallpaper"]);
 
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
-		if (gmenu2x->confStr["wallpaper"] == wallpapers[i]) {
-			selected = i;
-			break;
-		}
+		if (wallpaper == wallpapers[i]) selected = i;
 	}
 
-	buttons.push_back({"select", _("Menu")});
-	buttons.push_back({"b", _("Cancel")});
-	buttons.push_back({"a", _("Select")});
+	// DEBUG("Wallpapers: %i", wallpapers.size());
+	while (!close) {
+		//Wallpaper
+		if (selected < wallpapers.size() - fl.getFiles().size())
+			gmenu2x->sc["skins/"+gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[selected]]->blit(gmenu2x->s,0,0);
+		else
+			gmenu2x->sc["skins/Default/wallpapers/" + wallpapers[selected]]->blit(gmenu2x->s,0,0);
 
-	while (true) {
-		if (selected < 0) selected = wallpapers.size() - 1;
-		if (selected >= wallpapers.size()) selected = 0;
+		drawTopBar(gmenu2x->s, title, description, icon);
+		drawBottomBar(gmenu2x->s);
+		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
 
-		gmenu2x->setBackground(this->bg, wallpapers[selected]);
+		gmenu2x->drawButton(gmenu2x->s, "a", gmenu2x->tr["Select"],
+		gmenu2x->drawButton(gmenu2x->s, "start", gmenu2x->tr["Exit"],5));
 
-		drawDialog(gmenu2x->s);
+		//Selection
+		if (selected >= firstElement + numRows) firstElement = selected - numRows;
+		if (selected < firstElement) firstElement = selected;
 
-		if (wallpapers.size() < 1) {
-			MessageBox mb(gmenu2x, _("No wallpapers available"));
-			mb.setAutoHide(1);
-			mb.setBgAlpha(0);
-			mb.exec();
-		} else {
-			// Selection
-			if (selected >= firstElement + numRows) firstElement = selected - numRows;
-			if (selected < firstElement) firstElement = selected;
-
-			// Files & Directories
-			iY = gmenu2x->listRect.y + 1;
-			for (i = firstElement; i < wallpapers.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-				if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColor["selectionBg"]);
-				gmenu2x->s->write(gmenu2x->font, base_name(wallpapers[i]), gmenu2x->listRect.x + 5, iY + rowHeight / 2, VAlignMiddle);
-			}
-
-			gmenu2x->drawScrollBar(numRows, wallpapers.size(), firstElement, gmenu2x->listRect);
-
-			gmenu2x->s->flip();
+		//Files & Directories
+		iY = gmenu2x->listRect.y + 1;
+		for (i = firstElement; i < wallpapers.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
+			if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColors[COLOR_SELECTION_BG]);
+			gmenu2x->s->write(gmenu2x->font, wallpapers[i], gmenu2x->listRect.x + 5, iY + rowHeight/2, VAlignMiddle);
 		}
+
+		gmenu2x->drawScrollBar(numRows, wallpapers.size(), firstElement, gmenu2x->listRect);
+
+		gmenu2x->s->flip();
 
 		do {
 			inputAction = gmenu2x->input.update();
 			if (gmenu2x->inputCommonActions(inputAction)) continue;
 
-			if (gmenu2x->input[UP]) {
-				selected--;
-			} else if (gmenu2x->input[DOWN]) {
-				selected++;
-			} else if (gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT]) {
+			if ( gmenu2x->input[UP] ) {
+				selected -= 1;
+				if (selected < 0) selected = wallpapers.size() - 1;
+			} else if ( gmenu2x->input[DOWN] ) {
+				selected += 1;
+				if (selected >= wallpapers.size()) selected = 0;
+			} else if ( gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT] ) {
 				selected -= numRows;
 				if (selected < 0) selected = 0;
-			} else if (gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT]) {
+			} else if ( gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT] ) {
 				selected += numRows;
 				if (selected >= wallpapers.size()) selected = wallpapers.size() - 1;
-			} else if (gmenu2x->input[MENU] || gmenu2x->input[CANCEL]) {
-				return false;
-			} else if ((gmenu2x->input[SETTINGS] || gmenu2x->input[CONFIRM]) && wallpapers.size() > 0) {
-				wallpaper = wallpapers[selected];
-				return true;
+			} else if ( gmenu2x->input[SETTINGS] || gmenu2x->input[MENU] || gmenu2x->input[CANCEL] ) {
+				close = true;
+				result = false;
+			} else if ( gmenu2x->input[CONFIRM] ) {
+				close = true;
+				if (wallpapers.size() > 0) {
+					if (selected < wallpapers.size() - fl.getFiles().size())
+						wallpaper = "skins/" + gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[selected];
+					else
+						wallpaper = "skins/Default/wallpapers/" + wallpapers[selected];
+				} else {
+					result = false;
+				}
 			}
 		} while (!inputAction);
 	}
+
+	for (uint32_t i = 0; i < wallpapers.size(); i++)
+		if (i < wallpapers.size() - fl.getFiles().size())
+			gmenu2x->sc.del("skins/" + gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[i]);
+		else
+			gmenu2x->sc.del("skins/Default/wallpapers/" + wallpapers[i]);
+
+	gmenu2x->confStr["wallpaper"] = wallpaper;
+	return result;
 }

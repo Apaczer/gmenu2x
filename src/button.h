@@ -49,7 +49,7 @@ public:
 	void setSize(int w, int h);
 	virtual void setPosition(int x, int y);
 
-	virtual uint16_t paint();
+	virtual void paint();
 	virtual bool paintHover();
 
 	bool isPressed();

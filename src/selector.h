@@ -21,31 +21,36 @@
 #ifndef SELECTOR_H_
 #define SELECTOR_H_
 
-#include "browsedialog.h"
-#include <sstream>
+#include <string>
+#include "gmenu2x.h"
+#include "utilities.h"
+#include "dialog.h"
 
 class LinkApp;
+class FileLister;
 
-class Selector : public BrowseDialog {
+using std::string;
+using std::vector;
+
+class Selector : protected Dialog {
 private:
+	int selRow;
 	LinkApp *link;
 
+	string file, dir;
 	unordered_map<string, string> aliases;
-	unordered_map<string, string> params;
-	unordered_map<string, string> previews;
 	void loadAliases();
-	void parseAliases(istream &infile);
-	const std::string getPreview(uint32_t i = 0);
-	void delFav();
-	void addFav();
-	void updFavs();
-
+	string getAlias(const string &key, const string &fname);
+	void prepare(FileLister *fl, vector<string> *screens, vector<string> *titles);
+	void freeScreenshots(vector<string> *screens);
+	
 public:
-	Selector(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, LinkApp *link);
-	const std::string getFileName(uint32_t i = 0);
-	const std::string getParams(uint32_t i = 0);
-	void addToHome();
-	void customOptions(vector<MenuOption> &options);
+	Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir="");
+	
+	int exec(int startSelection=0);
+	
+	const string &getFile() { return file; }
+	const string &getDir() { return dir; }
 };
 
 #endif /*SELECTOR_H_*/

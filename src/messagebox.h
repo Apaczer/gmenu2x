@@ -21,41 +21,32 @@
 #ifndef MESSAGEBOX_H_
 #define MESSAGEBOX_H_
 
+#define MB_BTN_B 0
+#define MB_BTN_X 1
+#define MB_BTN_START 2
+#define MB_BTN_SELECT 3
+
 #include <string>
 #include "gmenu2x.h"
 
 using std::string;
 using std::vector;
 
-enum {
-	MB_BTN_B,
-	MB_BTN_X,
-	MB_BTN_START,
-	MB_BTN_SELECT
-};
-
 class MessageBox {
 private:
 	string text, icon;
-	uint32_t autohide = 0, bgalpha = 200;
+	int autohide, bgalpha;
 	GMenu2X *gmenu2x;
-	vector<string> button;
-	vector<string> buttonText;
-	vector<SDL_Rect> buttonPosition;
+	vector<string> buttons;
+	vector<string> buttonLabels;
+	vector<SDL_Rect> buttonPositions;
 
 public:
-	MessageBox(GMenu2X *gmenu2x, vector<MenuOption> options);
-	MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon = "");
-	~MessageBox();
-
+	MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon="");
 	void setButton(int action, const string &btn);
-	void setAutoHide(uint32_t delay);
-	void setBgAlpha(uint32_t bgalpha);
 	int exec();
-	void exec(uint32_t timeOut);
-	void clearTimer();
-	static uint32_t execTimer(uint32_t interval, void *param);
-	SDL_TimerID popupTimer;
+	void setAutoHide(int delay);
+	void setBgAlpha(bool bgalpha);
 };
 
 #endif /*MESSAGEBOX_H_*/

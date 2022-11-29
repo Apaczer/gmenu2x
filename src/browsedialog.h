@@ -22,42 +22,61 @@
 #define BROWSEDIALOG_H_
 
 #include <string>
-#include "gmenu2x.h"
-#include "dialog.h"
 #include "filelister.h"
-#include "menu.h"
+#include "gmenu2x.h"
+// #include "buttonbox.h"
+#include "dialog.h"
 
 class FileLister;
 
 using std::string;
 
-class BrowseDialog : protected Dialog, public FileLister {
+class BrowseDialog : protected Dialog {
 protected:
 	virtual void onChangeDir() {};
 
-private:
-	bool ts_pressed;
-	virtual const std::string getPreview(uint32_t i = 0);
-	vector<int> browse_history;
+	FileLister *fl;
+	int32_t selected;
 
-	void contextMenu();
-	void deleteFile();
-	void umountDir();
-	void exploreHome();
-	void exploreMedia();
-	void setWallpaper();
+private:
+	enum bd_action_t {
+		BD_NO_ACTION,
+		BD_ACTION_SELECT,
+		BD_ACTION_CLOSE,
+		BD_ACTION_UP,
+		BD_ACTION_DOWN,
+		BD_ACTION_PAGEUP,
+		BD_ACTION_PAGEDOWN,
+		BD_ACTION_GOUP,
+		BD_ACTION_CONFIRM,
+		BD_ACTION_CANCEL,
+	};
+
+	bool close, result, ts_pressed;
+	string title, description, icon;
+
+	uint32_t getAction();
+	void directoryUp();
+	void directoryEnter();
+	void confirm();
+	void cancel();
 
 public:
 	BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon = "icons/explorer.png");
-	virtual ~BrowseDialog() {};
-	bool allowSelectDirectory = false, allowEnterDirectory = true;
-	int32_t selected = 0;
-	bool exec(string _path = "");
-	void directoryEnter(string path);
+	virtual ~BrowseDialog();
 
-	virtual const std::string getFileName(uint32_t i = 0);
-	virtual const std::string getParams(uint32_t i = 0);
-	virtual void customOptions(vector<MenuOption> &options) { return; };
+	bool exec();
+
+	const std::string &getPath();
+	std::string getFile();
+
+	const std::string getExt();
+
+	void setFilter(const string &filter);
+
+	bool showDirectories, showFiles, allowSelectDirectory = false;
+
+	void setPath(const string &path);
 };
 
-#endif /*BROWSEDIALOG_H_*/
+#endif /*INPUTDIALOG_H_*/

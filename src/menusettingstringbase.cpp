@@ -23,14 +23,21 @@
 
 using std::string;
 
-MenuSettingStringBase::MenuSettingStringBase(GMenu2X *gmenu2x, const string &title, const string &description, string *value):
-MenuSetting(gmenu2x, title, description) , originalValue(*value) , _value(value) {}
+MenuSettingStringBase::MenuSettingStringBase(
+		GMenu2X *gmenu2x, const string &title,
+		const string &description, string *value)
+	: MenuSetting(gmenu2x, title, description)
+	, originalValue(*value)
+	, _value(value)
+{
+}
 
-MenuSettingStringBase::~MenuSettingStringBase() {}
+MenuSettingStringBase::~MenuSettingStringBase() {
+}
 
 void MenuSettingStringBase::draw(int y) {
 	MenuSetting::draw(y);
-	gmenu2x->s->write(gmenu2x->font, value(), 155, y + gmenu2x->font->height() / 2, VAlignMiddle);
+	gmenu2x->s->write(gmenu2x->font, value(), 155, y + gmenu2x->font->getHalfHeight(), VAlignMiddle);
 }
 
 uint32_t MenuSettingStringBase::manageInput() {

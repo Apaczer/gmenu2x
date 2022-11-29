@@ -1,294 +1,224 @@
 #include "browsedialog.h"
-#include "messagebox.h"
-#include "debug.h"
-#include "utilities.h"
-#include "powermanager.h"
+#include "FastDelegate.h"
+// #include "debug.h"
+#include <algorithm>
 
-BrowseDialog::BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon):
-Dialog(gmenu2x, title, description, icon) {
-	srand(SDL_GetTicks());
+using namespace fastdelegate;
+using namespace std;
+
+BrowseDialog::BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
+: Dialog(gmenu2x), title(title), description(description), icon(icon) {
+	fl = new FileLister(CARD_ROOT, true, false);
 }
 
-bool BrowseDialog::exec(string _path) {
+BrowseDialog::~BrowseDialog() {
+	delete fl;
+}
+
+bool BrowseDialog::exec() {
+	if (!fl) return false;
+
 	this->bg = new Surface(gmenu2x->bg); // needed to redraw on child screen return
 
-	Surface *iconGoUp = gmenu2x->sc["skin:imgs/go-up.png"];
-	Surface *iconFolder = gmenu2x->sc["skin:imgs/folder.png"];
-	Surface *iconFile = gmenu2x->sc["skin:imgs/file.png"];
-	Surface *iconSd = gmenu2x->sc["skin:imgs/sd.png"];
-	Surface *iconFav = gmenu2x->sc["skin:imgs/fav.png"];
-	Surface *iconCur;
+	Surface *iconGoUp = gmenu2x->sc.skinRes("imgs/go-up.png");
+	Surface *iconFolder = gmenu2x->sc.skinRes("imgs/folder.png");
+	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
 
-	uint32_t i, iY, firstElement = 0, padding = 6;
-	int32_t animation = 0;
-	uint32_t rowHeight = gmenu2x->font->height() + 1;
-	uint32_t numRows = (gmenu2x->listRect.h - 2) / rowHeight - 1;
+	string path = fl->getPath();
+	if (path.empty() || !dirExists(path))
+		setPath(CARD_ROOT);
 
-	if (_path.empty() || !dir_exists(_path))
-		_path = gmenu2x->confStr["homePath"];
+	fl->browse();
 
-	directoryEnter(_path);
+	selected = 0;
+	close = false;
+	bool inputAction = false;
 
-	string preview = getPreview(selected);
+	uint32_t i, iY, firstElement = 0, animation = 0, padding = 6;
+	uint32_t rowHeight = gmenu2x->font->getHeight() + 1;
+	uint32_t numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 
-	// this->description = getFilter();
+	drawTopBar(this->bg, title, description, icon);
+	drawBottomBar(this->bg);
+	this->bg->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
 
-	while (true) {
-		if (selected < 0) selected = this->size() - 1;
-		if (selected >= this->size()) selected = 0;
+	if (!showFiles && allowSelectDirectory) {
+		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"]);
+	} else {
+		gmenu2x->drawButton(this->bg, "x", gmenu2x->tr["Folder up"],
+		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
+		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Cancel"], 5)));
+	}
 
-		bool inputAction = false;
+	uint32_t tickStart = SDL_GetTicks();
+	while (!close) {
+		this->bg->blit(gmenu2x->s,0,0);
+		// buttonBox.paint(5);
 
-		buttons.clear();
-		buttons.push_back({"select", _("Menu")});
-		buttons.push_back({"b", _("Cancel")});
+		//Selection
+		if (selected >= firstElement + numRows) firstElement = selected - numRows;
+		if (selected < firstElement) firstElement = selected;
 
-		if (!showFiles && allowSelectDirectory)
-			buttons.push_back({"start", _("Select")});
-		else if ((allowEnterDirectory && isDirectory(selected)) || !isDirectory(selected))
-			buttons.push_back({"a", _("Select")});
-
-		if (showDirectories && allowDirUp && path != "/")
-			buttons.push_back({"x", _("Dir up")});
-
-		if (gmenu2x->confStr["previewMode"] == "Backdrop") {
-			if (!(preview.empty() || preview == "#"))
-				gmenu2x->setBackground(this->bg, preview);
-			else
-				gmenu2x->bg->blit(this->bg,0,0);
+		//Files & Directories
+		iY = gmenu2x->listRect.y + 1;
+		for (i = firstElement; i < fl->size() && i <= firstElement + numRows; i++, iY += rowHeight) {
+			if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColors[COLOR_SELECTION_BG]);
+			if (fl->isDirectory(i)) {
+				if ((*fl)[i] == "..")
+					iconGoUp->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+				else
+					iconFolder->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+			} else {
+				iconFile->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+			}
+			gmenu2x->s->write(gmenu2x->font, (*fl)[i], gmenu2x->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
 		}
 
-		this->description = path;
+		// preview
+		string filename = fl->getPath() + "/" + getFile();
+		string ext = getExt();
 
-		drawDialog(gmenu2x->s);
+		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
+			gmenu2x->s->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skinConfInt["previewWidth"], gmenu2x->listRect.h, gmenu2x->skinConfColors[COLOR_TOP_BAR_BG]);
 
-		if (!size()) {
-			MessageBox mb(gmenu2x, _("This directory is empty"));
-			mb.setAutoHide(1);
-			mb.setBgAlpha(0);
-			mb.exec();
+			gmenu2x->sc[filename]->softStretch(gmenu2x->skinConfInt["previewWidth"] - 2 * padding, gmenu2x->listRect.h - 2 * padding, true, false);
+			gmenu2x->sc[filename]->blit(gmenu2x->s, {320 - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skinConfInt["previewWidth"] - 2 * padding, gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
+
+			if (animation < gmenu2x->skinConfInt["previewWidth"]) {
+				animation = intTransition(0, gmenu2x->skinConfInt["previewWidth"], tickStart, 110);
+				gmenu2x->s->flip();
+				gmenu2x->input.setWakeUpInterval(45);
+				continue;
+			}
 		} else {
-			// Selection
-			if (selected >= firstElement + numRows) firstElement = selected - numRows;
-			if (selected < firstElement) firstElement = selected;
-
-			// Files & Directories
-			iY = gmenu2x->listRect.y + 1;
-			for (i = firstElement; i < size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-				if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColor["selectionBg"]);
-
-				iconCur = iconFile;
-
-				if (isDirectory(i)) {
-					if (getFile(i) == "..")
-						iconCur = iconGoUp;
-					else if (getPath(i) == "/media" || path == "/media")
-						iconCur = iconSd;
-					else
-						iconCur = iconFolder;
-				} else if (isFavourite(getFile(i))) {
-					iconCur = iconFav;
-				}
-
-				iconCur->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
-
-				gmenu2x->s->write(gmenu2x->font, getFileName(i), gmenu2x->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
+			if (animation > 0) {
+				gmenu2x->s->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skinConfInt["previewWidth"], gmenu2x->listRect.h, gmenu2x->skinConfColors[COLOR_TOP_BAR_BG]);
+				animation = gmenu2x->skinConfInt["previewWidth"] - intTransition(0, gmenu2x->skinConfInt["previewWidth"], tickStart, 80);
+				gmenu2x->s->flip();
+				gmenu2x->input.setWakeUpInterval(45);
+				continue;
 			}
-
-			if (gmenu2x->confStr["previewMode"] != "Backdrop") {
-				Surface anim = new Surface(gmenu2x->s);
-				if (preview.empty() || preview == "#") { // hide preview
-					 while (animation > 0) {
-						animation -= gmenu2x->skinConfInt["previewWidth"] / 8;
-
-						if (animation < 0)
-							animation = 0;
-
-						anim.blit(gmenu2x->s,0,0);
-						gmenu2x->s->box(gmenu2x->platform->w - animation, gmenu2x->listRect.y, gmenu2x->skinConfInt["previewWidth"] + 2 * padding, gmenu2x->listRect.h, gmenu2x->skinConfColor["previewBg"]);
-						gmenu2x->s->flip();
-						SDL_Delay(10);
-					};
-				} else { // show preview
-					if (!gmenu2x->sc.exists(preview + "scaled")) {
-						Surface *previm = new Surface(preview);
-						gmenu2x->sc.add(previm, preview + "scaled");
-
-						gmenu2x->sc[preview + "scaled"]->softStretch(gmenu2x->skinConfInt["previewWidth"], gmenu2x->listRect.h - 2 * padding, SScaleFit);
-					}
-
-					do {
-						animation += gmenu2x->skinConfInt["previewWidth"] / 8;
-
-						if (animation > gmenu2x->skinConfInt["previewWidth"] + 2 * padding)
-							animation = gmenu2x->skinConfInt["previewWidth"] + 2 * padding;
-
-						anim.blit(gmenu2x->s,0,0);
-						gmenu2x->s->box(gmenu2x->platform->w - animation, gmenu2x->listRect.y, gmenu2x->skinConfInt["previewWidth"] + 2 * padding, gmenu2x->listRect.h, gmenu2x->skinConfColor["previewBg"]);
-						gmenu2x->sc[preview + "scaled"]->blit(gmenu2x->s, {gmenu2x->platform->w - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skinConfInt["previewWidth"], gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, gmenu2x->platform->h);
-						gmenu2x->s->flip();
-						SDL_Delay(10);
-					} while (animation < gmenu2x->skinConfInt["previewWidth"] + 2 * padding);
-				}
-			}
-			gmenu2x->drawScrollBar(numRows, size(), firstElement, gmenu2x->listRect);
-			gmenu2x->s->flip();
 		}
+		gmenu2x->input.setWakeUpInterval(1000);
+
+		gmenu2x->drawScrollBar(numRows, fl->size(), firstElement, gmenu2x->listRect);
+		gmenu2x->s->flip();
 
 		do {
 			inputAction = gmenu2x->input.update();
 			if (gmenu2x->inputCommonActions(inputAction)) continue;
+			if (inputAction) tickStart = SDL_GetTicks();
 
-			if (gmenu2x->input[UP]) {
-				selected--;
-			} else if (gmenu2x->input[DOWN]) {
-				selected++;
-			} else if (gmenu2x->input[LEFT]) {
-				selected -= numRows;
-				if (selected < 0) selected = 0;
-			} else if (gmenu2x->input[RIGHT]) {
-				selected += numRows;
-				if (selected >= this->size()) selected = this->size() - 1;
-			} else if (gmenu2x->input[PAGEDOWN]) {
-				string cur = getFileName(selected);
-				while ((selected < this->size() - 1) && selected++) {
-					string sel = getFileName(selected);
-					if (tolower(cur.at(0)) != tolower(sel.at(0)))
+			uint32_t action = getAction();
+
+		// if (action == BD_ACTION_SELECT && (*fl)[selected] == "..")
+			// action = BD_ACTION_GOUP;
+			switch (action) {
+				case BD_ACTION_CANCEL:
+					cancel();
+					break;
+				case BD_ACTION_CLOSE:
+					if (allowSelectDirectory && fl->isDirectory(selected)) confirm();
+					else cancel();
+					break;
+				case BD_ACTION_UP:
+					selected -= 1;
+					if (selected < 0) selected = fl->size() - 1;
+					break;
+				case BD_ACTION_DOWN:
+					selected += 1;
+					if (selected >= fl->size()) selected = 0;
+					break;
+				case BD_ACTION_PAGEUP:
+					selected -= numRows;
+					if (selected < 0) selected = 0;
+					break;
+				case BD_ACTION_PAGEDOWN:
+					selected += numRows;
+					if (selected >= fl->size()) selected = fl->size() - 1;
+					break;
+				case BD_ACTION_GOUP:
+					directoryUp();
+					break;
+				case BD_ACTION_SELECT:
+					if (fl->isDirectory(selected)) {
+						directoryEnter();
 						break;
-				}
-			} else if (gmenu2x->input[PAGEUP]) {
-				string cur = getFileName(selected);
-				while (selected > 0 && selected--) {
-					string sel = getFileName(selected);
-					if (tolower(cur.at(0)) != tolower(sel.at(0)))
-						break;
-				}
-			} else if (showDirectories && allowDirUp && (gmenu2x->input[MODIFIER] || (gmenu2x->input[CONFIRM] && getFile(selected) == ".."))) { /*Directory Up */
-				selected = 0;
-				preview = "";
-				if (browse_history.size() > 0) {
-					selected = browse_history.back();
-					browse_history.pop_back();
-				}
-				directoryEnter(path + "/..");
-			} else if (gmenu2x->input[CONFIRM]) {
-				if (allowEnterDirectory && isDirectory(selected)) {
-					browse_history.push_back(selected);
-					directoryEnter(getPath(selected));
-					selected = 0;
-				} else {
-					return true;
-				}
-			} else if (gmenu2x->input[SETTINGS] && allowSelectDirectory) {
-				return true;
-			} else if (gmenu2x->input[CANCEL] || gmenu2x->input[SETTINGS]) {
-				if (!((gmenu2x->confStr["previewMode"] != "Backdrop") && !(preview.empty() || preview == "#")))
-					return false; // close only if preview is empty.
-				preview = "";
-			} else if (gmenu2x->input[MANUAL]) {
-				selected = (rand() % fileCount()) + dirCount();
-			} else if (gmenu2x->input[MENU]) {
-				contextMenu();
+					}
+			/* Falltrough */
+				case BD_ACTION_CONFIRM:
+					confirm();
+					break;
+				default:
+					break;
 			}
-
-			if (gmenu2x->input[UP] || gmenu2x->input[DOWN] || gmenu2x->input[LEFT] || gmenu2x->input[RIGHT] || gmenu2x->input[PAGEUP] || gmenu2x->input[PAGEDOWN]) {
-				preview = getPreview(selected);
-			}
-
 		} while (!inputAction);
 	}
+	return result;
 }
 
-void BrowseDialog::directoryEnter(string path) {
-	gmenu2x->input.dropEvents(); // prevent passing input away
-	gmenu2x->powerManager->clearTimer();
+uint32_t BrowseDialog::getAction() {
+	uint32_t action = BD_NO_ACTION;
 
-	this->description = path;
-	buttons.clear();
-	buttons.push_back({"skin:imgs/manual.png", _("Loading.. Please wait..")});
+	if (gmenu2x->input[CANCEL]) action = BD_ACTION_CLOSE;
+	else if (gmenu2x->input[UP]) action = BD_ACTION_UP;
+	else if (gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT]) action = BD_ACTION_PAGEUP;
+	else if (gmenu2x->input[DOWN]) action = BD_ACTION_DOWN;
+	else if (gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT]) action = BD_ACTION_PAGEDOWN;
+	else if (gmenu2x->input[MANUAL]) action = BD_ACTION_GOUP;
+	else if (gmenu2x->input[CONFIRM]) action = BD_ACTION_SELECT;
+	else if (gmenu2x->input[CANCEL] || gmenu2x->input[MENU]) action = BD_ACTION_CANCEL;
+	return action;
+}
 
-	drawDialog(gmenu2x->s);
+void BrowseDialog::directoryUp() {
+	string path = fl->getPath();
+	string::size_type p = path.rfind("/");
+	if (p == path.size() - 1) p = path.rfind("/", p - 1);
+	selected = 0;
+	setPath("/"+path.substr(0, p));
+}
 
-	SDL_TimerID flipScreenTimer = SDL_AddTimer(500, GMenu2X::timerFlip, (void*)false);
+void BrowseDialog::directoryEnter() {
+	string path = fl->getPath();
+	setPath(path + "/" + fl->at(selected));
+	selected = 0;
+}
 
-	browse(path);
+void BrowseDialog::confirm() {
+	result = true;
+	close = true;
+}
+
+void BrowseDialog::cancel() {
+	result = false;
+	close = true;
+}
+
+const std::string BrowseDialog::getExt() {
+	string filename = (*fl)[selected];
+	string ext = "";
+	string::size_type pos = filename.rfind(".");
+	if (pos != string::npos && pos > 0) {
+		ext = filename.substr(pos, filename.length());
+		transform(ext.begin(), ext.end(), ext.begin(), (int(*)(int)) tolower);
+	}
+	return ext;
+}
+
+void BrowseDialog::setPath(const string &path) {
+	fl->showDirectories = showDirectories;
+	fl->showFiles = showFiles;
+	fl->setPath(path);
 	onChangeDir();
-
-	SDL_RemoveTimer(flipScreenTimer); flipScreenTimer = NULL;
-	gmenu2x->powerManager->resetSuspendTimer();
 }
 
-const std::string BrowseDialog::getFileName(uint32_t i) {
-	return getFile(i);
+const std::string &BrowseDialog::getPath() {
+	return fl->getPath();
 }
-const std::string BrowseDialog::getParams(uint32_t i) {
-	return "";
+std::string BrowseDialog::getFile() {
+	return (*fl)[selected];
 }
-const std::string BrowseDialog::getPreview(uint32_t i) {
-	string ext = getExt(i);
-	if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp") return getPath(i);
-	return "";
-}
-
-void BrowseDialog::contextMenu() {
-	vector<MenuOption> options;
-
-	string ext = getExt(selected);
-
-	customOptions(options);
-
-	if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp")
-		options.push_back((MenuOption){_("Set as wallpaper"), MakeDelegate(this, &BrowseDialog::setWallpaper)});
-
-	if (path == "/media" && getFile(selected) != ".." && isDirectory(selected))
-		options.push_back((MenuOption){_("Umount"), MakeDelegate(this, &BrowseDialog::umountDir)});
-
-	if (path != home_path("../"))
-		options.push_back((MenuOption){_F("Go to %s", home_path("../").c_str()), MakeDelegate(this, &BrowseDialog::exploreHome)});
-
-	if (path != "/media")
-		options.push_back((MenuOption){_F("Go to %s", "/media"), MakeDelegate(this, &BrowseDialog::exploreMedia)});
-
-	if (isFile(selected))
-		options.push_back((MenuOption){_("Delete"), MakeDelegate(this, &BrowseDialog::deleteFile)});
-
-	MessageBox mb(gmenu2x, options);
-}
-
-void BrowseDialog::deleteFile() {
-	MessageBox mb(gmenu2x, (string)_F("Delete %s", getFile(selected).c_str()) + "'\n" + _("THIS CAN'T BE UNDONE") + "\n" + _("Are you sure?"), "explorer.png");
-	mb.setButton(MANUAL, _("Yes"));
-	mb.setButton(CANCEL,  _("No"));
-	if (mb.exec() != MANUAL) return;
-	if (!unlink(getPath(selected).c_str())) {
-		directoryEnter(path); // refresh
-		sync();
-	}
-}
-
-void BrowseDialog::umountDir() {
-	string umount = "sync; umount -fl " + getPath(selected) + " && rm -r " + getPath(selected);
-	system(umount.c_str());
-	directoryEnter(path); // refresh
-}
-
-void BrowseDialog::exploreHome() {
-	selected = 0;
-	directoryEnter(home_path("../"));
-}
-
-void BrowseDialog::exploreMedia() {
-	selected = 0;
-	directoryEnter("/media");
-}
-
-void BrowseDialog::setWallpaper() {
-	string src = getPath(selected);
-	string dst = home_path("Wallpaper") + file_ext(src, true);
-	if (file_copy(src, dst)) {
-		gmenu2x->confStr["wallpaper"] = dst;
-		gmenu2x->writeConfig();
-		gmenu2x->setBackground(gmenu2x->bg, dst);
-		this->exec();
-	}
+void BrowseDialog::setFilter(const string &filter) {
+	fl->setFilter(filter);
 }

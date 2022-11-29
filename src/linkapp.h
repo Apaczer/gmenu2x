@@ -21,95 +21,102 @@
 #define LINKAPP_H
 
 #include <string>
-#include <vector>
-
-using std::string;
-using std::vector;
+#include <iostream>
 
 #include "link.h"
 
-enum package_type {
-	PKG_GENERIC,
-	PKG_OPK,
-	PKG_RETROARCH,
-};
+using std::string;
+
+class GMenu2X;
+class InputManager;
 
 /**
-	Parses links files.
+Parses links files.
+
 	@author Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
 */
 class LinkApp : public Link {
 private:
-	// InputManager &input;
-	int		gamma = 0,
-			clock = 0,
-			selectorelement = 0,
-			scalemode,
-			_scalemode = 0,
-			package_type = PKG_GENERIC;
+	InputManager &inputMgr;
+	// string svolume, sclock, svolume;
+	int iclock = 0; //, ivolume = 0;
 
-	bool	selectorbrowser = true,
-			terminal = false,
-			autorun = false;
+	string exec, params, workdir, manual, manualPath, selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
+	bool selectorbrowser;
+	// void drawRun();
 
-	string	exec = "",
-			params = "",
-			homedir = "",
-			manual = "",
-			manualPath = "",
-			selectordir = "",
-			selectorfilter = "",
-			selectorscreens = "",
-			aliasfile = "",
-			file = "",
-			icon_opk = "";
+	string aliasfile;
+	string file;
 
-	vector<string> favourites;
+	// bool wrapper, dontleave, useRamTimings, useGinge;
 
 public:
-	LinkApp(GMenu2X *gmenu2x, const char* file);
-	const string &getExec() { return exec; }
+	LinkApp(GMenu2X *gmenu2x, InputManager &inputMgr, const char* linkfile);
+	virtual const string &searchIcon();
+	virtual const string &searchBackdrop();
+	virtual const string &searchManual();
+
+	const string &getExec();
 	void setExec(const string &exec);
-	const string &getParams() { return params; }
+	const string &getParams();
 	void setParams(const string &params);
-	const string &getHomeDir() { return homedir; }
-	void setHomeDir(const string &homedir);
-	const string &getManual() { return manual; }
+	const string &getWorkdir();
+	const string getRealWorkdir();
+	void setWorkdir(const string &workdir);
+	const string &getManual();
 	const string &getManualPath() { return manualPath; }
 	void setManual(const string &manual);
-	const string &getSelectorDir() { return selectordir; }
-	void addFavourite(const string &fav);
-	void delFavourite(const string &fav);
-	vector<string> &getFavourites() { return favourites; }
+	const string &getSelectorDir();
 	void setSelectorDir(const string &selectordir);
-	bool getSelectorBrowser() { return selectorbrowser; }
+	bool getSelectorBrowser();
 	void setSelectorBrowser(bool value);
-	bool getTerminal() { return terminal; }
-	void setTerminal(bool value);
-	int getScaleMode() { return scalemode; }
-	void setScaleMode(int value);
-	const string &getSelectorScreens() { return selectorscreens; }
+	// bool getUseRamTimings();
+	// void setUseRamTimings(bool value);
+	// bool getUseGinge();
+	// void setUseGinge(bool value);
+	const string &getSelectorScreens();
 	void setSelectorScreens(const string &selectorscreens);
-	const string &getSelectorFilter() { return selectorfilter; }
+	const string &getSelectorFilter();
 	void setSelectorFilter(const string &selectorfilter);
-	int getSelectorElement() { return selectorelement; }
-	void setSelectorElement(int i);
-	const string &getAliasFile() { return aliasfile; }
+	const string &getAliasFile();
 	void setAliasFile(const string &aliasfile);
-	int getCPU() { return clock; }
+
+	int clock();
+	// const string &clockStr(int maxClock);
 	void setCPU(int mhz = 0);
+
+	// int volume();
+	// const string &volumeStr();
+	// void setVolume(int vol);
+
+#if defined(TARGET_GP2X)
+	//G
+	// string sgamma;
+	//G
+	int igamma;
+
+//G
+	int gamma();
+	// const string &gammaStr();
+	void setGamma(int gamma);
+// /G
+#endif
+
 	bool save();
 	void run();
-	void selector(int startSelection = 0, string selectorDir = "");
-	void launch(const string &selectedFile = "", string selectedDir = "");
+	// void showManual();
+	void selector(int startSelection=0, const string &selectorDir="");
+	void launch(const string &selectedFile="", const string &selectedDir="");
 	bool targetExists();
-	void renameFile(const string &name);
+
 	const string &getFile() { return file; }
-	int getGamma() { return gamma; }
-	void setGamma(int gamma);
-	const string searchIcon();
-	const string searchBackdrop();
-	const string searchManual();
+	const string &getBackdrop() { return backdrop; }
+	const string &getBackdropPath() { return backdropPath; }
+	void setBackdrop(const string selectedFile="");
+
+	void renameFile(const string &name);
+	// bool &needsWrapperRef() { return wrapper; }
+	// bool &runsInBackgroundRef() { return dontleave; }
 };
 
 #endif

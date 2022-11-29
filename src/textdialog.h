@@ -31,12 +31,10 @@ using std::vector;
 class TextDialog : protected Dialog {
 protected:
 	vector<string> text;
-	string backdrop, rawText = "";
+	string title, description, icon, backdrop, rawText = "";
 
-	int32_t firstCol = 0, lineWidth = 0, firstRow = 0;
-	uint32_t rowsPerPage = 0;
-
-	int drawText(vector<string> *text, int32_t firstCol, int32_t firstRow, uint32_t rowsPerPage);
+	void preProcess();
+	void drawText(vector<string> *text, uint32_t firstRow, uint32_t rowsPerPage);
 
 public:
 	TextDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, const string &backdrop = "");
@@ -44,8 +42,7 @@ public:
 	void appendText(const string &text);
 	void appendFile(const string &file);
 
-	virtual void exec();
-	virtual void preProcess();
+	void exec();
 };
 
 #endif /*TEXTDIALOG_H_*/

@@ -1,15 +1,21 @@
 #include "button.h"
 #include "gmenu2x.h"
 
+using namespace std;
 using namespace fastdelegate;
 
-Button::Button(Touchscreen &ts, bool doubleClick):
-ts(ts), action(MakeDelegate(this, &Button::voidAction)), rect((SDL_Rect) { 0, 0, 0, 0 }), doubleClick(doubleClick), lastTick(0) {}
+Button::Button(Touchscreen &ts_, bool doubleClick_)
+	: ts(ts_)
+	, action(MakeDelegate(this, &Button::voidAction))
+	, rect((SDL_Rect) { 0, 0, 0, 0 })
+	, doubleClick(doubleClick_)
+	, lastTick(0)
+{
+}
 
-uint16_t Button::paint() {
-	return 0;
-	// if (ts.inRect(rect))
-		// if (!paintHover()) return 0;
+void Button::paint() {
+	if (ts.inRect(rect))
+		if (!paintHover()) return;
 }
 
 bool Button::paintHover() {

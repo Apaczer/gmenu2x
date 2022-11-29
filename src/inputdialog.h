@@ -27,6 +27,7 @@
 
 #include <string>
 #include "gmenu2x.h"
+#include "dialog.h"
 
 using std::string;
 using std::vector;
@@ -34,13 +35,9 @@ using std::vector;
 typedef vector<string> stringlist;
 
 // class InputManager;
-// class Touchscreen;
+class Touchscreen;
 
-class InputDialog {
-protected:
-	GMenu2X *gmenu2x;
-	SDL_TimerID wakeUpTimer = NULL;
-
+class InputDialog : protected Dialog {
 private:
 	enum id_actions {
 		ID_NO_ACTION,
@@ -57,7 +54,10 @@ private:
 		ID_ACTION_KB_CHANGE
 	};
 
+	// InputManager &inputMgr;
+	Touchscreen &ts;
 	int selRow, selCol;
+	bool close, ok;
 	string title, text, icon;
 	int16_t curKeyboard;
 	vector<stringlist> keyboard;
@@ -76,8 +76,7 @@ private:
 	void setKeyboard(int);
 
 public:
-	InputDialog(GMenu2X *gmenu2x, /*Touchscreen &ts,*/ const string &text, const string &startvalue = "", const string &title = "", const string &icon = "");
-	~InputDialog();
+	InputDialog(GMenu2X *gmenu2x, Touchscreen &ts, const string &text, const string &startvalue="", const string &title="", const string &icon="");
 
 	bool exec();
 	const string &getInput() { return input; }

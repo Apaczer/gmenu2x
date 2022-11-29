@@ -37,6 +37,7 @@ public:
 	virtual ~MenuSettingInt() {};
 
 	virtual uint32_t manageInput();
+	// virtual void adjustInput();
 	virtual void draw(int);
 	virtual bool edited();
 

@@ -1,0 +1,16 @@
+#!/bin/sh
+killall updateui
+HOME=/mnt/SDCARD/Apps
+cd $HOME/gmenu2x
+chmod a+x ./gmenu2x
+a=`ps | grep keymon | grep -v grep`
+if [ "$a" == "" ] ; then
+	keymon &
+	usleep 100000
+fi
+sync
+./soundinit
+./lcdinit
+while [ 1 ]; do
+./gmenu2x
+done

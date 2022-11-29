@@ -25,18 +25,13 @@
 #include <SDL_image.h>
 
 using std::string;
-using std::istream;
 
-const uint8_t	HAlignLeft		= 1,
-				HAlignRight		= 2,
-				HAlignCenter	= 4,
-				VAlignTop		= 8,
-				VAlignBottom	= 16,
-				VAlignMiddle	= 32;
-
-const uint8_t	SScaleStretch	= 0,
-				SScaleMax		= 1,
-				SScaleFit		= 2;
+const int	HAlignLeft		= 1,
+			HAlignRight		= 2,
+			HAlignCenter	= 4,
+			VAlignTop		= 8,
+			VAlignBottom	= 16,
+			VAlignMiddle	= 32;
 
 class FontHelper;
 
@@ -64,24 +59,28 @@ SDL_Color rgbatosdl(RGBAColor color);
 class Surface {
 private:
 	bool locked;
-	SDL_Surface *screen = NULL;
+	int halfW, halfH;
+	SDL_Surface *dblbuffer;
 
 public:
 	Surface();
-	Surface(const string &img, const string &skin = "", bool alpha = true);
-	Surface(const string &img, bool alpha, const string &skin = "");
+	Surface(const string &img, const string &skin="", bool alpha=true);
+	Surface(const string &img, bool alpha, const string &skin="");
 	Surface(SDL_Surface *s, SDL_PixelFormat *fmt = NULL, uint32_t flags = 0);
 	Surface(Surface *s);
-	Surface(int w, int h, int bpp);
-	Surface(void *s, size_t &size);
+	Surface(int w, int h, uint32_t flags = SDL_HWSURFACE|SDL_SRCALPHA);
 	~Surface();
 
+	void enableVirtualDoubleBuffer(SDL_Surface *surface, bool alpha=true);
 	void enableAlpha();
 
-	SDL_Surface *raw = NULL;
+	SDL_Surface *raw;
+#if defined(TARGET_RS97) || defined(TARGET_MIYOO) || defined(TARGET_TRIMUI)
+	SDL_Surface *ScreenSurface;
+#endif
 
 	void free();
-	void load(const string &img, bool alpha = true, string skin = "");
+	void load(const string &img, bool alpha=true, const string &skin="");
 	void lock();
 	void unlock();
 	void flip();
@@ -97,10 +96,9 @@ public:
 	void clearClipRect();
 	void setClipRect(SDL_Rect rect);
 
-	bool blit(Surface *destination, int x, int y, const uint8_t align = HAlignLeft | VAlignTop, uint8_t alpha = -1);
-	bool blit(Surface *destination, SDL_Rect destrect, const uint8_t align = HAlignLeft | VAlignTop, uint8_t alpha = -1);
+	bool blit(Surface *destination, int x, int y, const uint8_t align = HAlignLeft | VAlignTop, uint8_t alpha=-1);
+	bool blit(Surface *destination, SDL_Rect destrect, const uint8_t align = HAlignLeft | VAlignTop, uint8_t alpha=-1);
 
-	void write(FontHelper *font, const string &text, SDL_Rect &wrapRect, const uint8_t align = HAlignLeft | VAlignTop);
 	void write(FontHelper *font, const string &text, int x, int y, const uint8_t align = HAlignLeft | VAlignTop);
 	void write(FontHelper *font, const string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor);
 
@@ -132,11 +130,8 @@ public:
 	void operator = (SDL_Surface*);
 	void operator = (Surface*);
 
-	void softStretch(uint16_t w, uint16_t h, uint8_t scale_mode = SScaleStretch);
+	void softStretch(uint16_t x, uint16_t y, bool keep_aspect = false, bool maximize = true);
 	void setAlpha(uint8_t alpha);
-
-	int width() { return raw->w; }
-	int height() { return raw->h; }
 };
 
 #endif

@@ -24,18 +24,16 @@
 #include <string>
 #include "gmenu2x.h"
 #include "dialog.h"
-#include "filelister.h"
 
 using std::string;
 using std::vector;
 
-class WallpaperDialog : protected Dialog, public FileLister {
+class WallpaperDialog : protected Dialog {
+protected:
+	string title, description, icon;
 public:
 	WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon);
-	~WallpaperDialog();
-
 	string wallpaper;
-	vector<string> wallpapers;
 
 	bool exec();
 };

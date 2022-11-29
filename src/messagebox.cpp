@@ -17,253 +17,148 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "messagebox.h"
 #include "powermanager.h"
-#include "debug.h"
+// #include "debug.h"
 
-MessageBox::MessageBox(GMenu2X *gmenu2x, vector<MenuOption> options):
-gmenu2x(gmenu2x) {
-	bool inputAction = false;
-	int32_t selected = 0;
-	uint32_t i, fadeAlpha = 0, h = gmenu2x->font->height(), h2 = gmenu2x->font->height() / 2;
-	SDL_Rect box;
+using namespace std;
 
-	Surface bg(gmenu2x->s);
+MessageBox::MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon) {
+	this->gmenu2x = gmenu2x;
+	this->text = text;
+	this->icon = icon;
+	this->autohide = 0;
+	this->bgalpha = 200;
 
-	gmenu2x->input.dropEvents(); // prevent passing input away
-	gmenu2x->powerManager->clearTimer();
-
-	box.h = h * options.size() + 8;
-	box.w = 0;
-	for (i = 0; i < options.size(); i++) {
-		box.w = max(gmenu2x->font->getTextWidth(options[i].text), box.w);
-	};
-	box.w += 23;
-	box.x = (gmenu2x->platform->w - box.w) / 2;
-	box.y = (gmenu2x->platform->h - box.h) / 2;
-
-	uint32_t tickStart = SDL_GetTicks();
-	while (true) {
-		if (selected < 0) selected = options.size() - 1;
-		if (selected >= options.size()) selected = 0;
-
-		bg.blit(gmenu2x->s, 0, 0);
-
-		gmenu2x->s->box(0, 0, gmenu2x->platform->w, gmenu2x->platform->h, 0,0,0, fadeAlpha);
-		gmenu2x->s->box(box.x, box.y, box.w, box.h, gmenu2x->skinConfColor["messageBoxBg"]);
-		gmenu2x->s->rectangle(box.x + 2, box.y + 2, box.w - 4, box.h - 4, gmenu2x->skinConfColor["messageBoxBorder"]);
-
-		// draw selection rect
-		gmenu2x->s->box(box.x + 4, box.y + 4 + h * selected, box.w - 8, h, gmenu2x->skinConfColor["messageBoxSelection"]);
-		for (i = 0; i < options.size(); i++)
-			gmenu2x->s->write(gmenu2x->font, options[i].text, box.x + 12, box.y + h2 + 3 + h * i, VAlignMiddle, gmenu2x->skinConfColor["fontAlt"], gmenu2x->skinConfColor["fontAltOutline"]);
-
-		gmenu2x->s->flip();
-
-		if (fadeAlpha < 200) {
-			fadeAlpha = intTransition(0, 200, tickStart, 200);
-			continue;
-		}
-
-		do {
-			inputAction = gmenu2x->input.update();
-
-			if (gmenu2x->inputCommonActions(inputAction)) continue;
-
-			if (gmenu2x->input[MENU] || gmenu2x->input[CANCEL]) return;
-			else if (gmenu2x->input[UP]) selected--;
-			else if (gmenu2x->input[DOWN]) selected++;
-			else if (gmenu2x->input[LEFT] || gmenu2x->input[PAGEUP]) selected = 0;
-			else if (gmenu2x->input[RIGHT] || gmenu2x->input[PAGEDOWN]) selected = (int)options.size() - 1;
-			else if (gmenu2x->input[SETTINGS] || gmenu2x->input[CONFIRM]) {
-				options[selected].action();
-				return;
-			}
-		} while (!inputAction);
-	}
-}
-
-MessageBox::MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon):
-gmenu2x(gmenu2x), text(text), icon(icon) {
-	buttonText.resize(19);
-	button.resize(19);
-	buttonPosition.resize(19);
-
-	bool anyaction = false;
-	for (uint32_t x = 0; x < buttonText.size(); x++) {
-		buttonText[x] = "";
-		button[x] = "";
-		buttonPosition[x].h = gmenu2x->font->height();
-		anyaction = true;
+	buttons.resize(19);
+	buttonLabels.resize(19);
+	buttonPositions.resize(19);
+	for (uint32_t x = 0; x < buttons.size(); x++) {
+		buttons[x] = "";
+		buttonLabels[x] = "";
+		buttonPositions[x].h = gmenu2x->font->getHeight();
 	}
 
-	if (!anyaction)
-		// Default enabled button
-		buttonText[CONFIRM] = "OK";
+	//Default enabled button
+	buttons[CONFIRM] = "OK";
 
-	// Default labels
-	button[UP] = "up";
-	button[DOWN] = "down";
-	button[LEFT] = "left";
-	button[RIGHT] = "right";
-	button[MODIFIER] = "x";
-	button[CONFIRM] = "a";
-	button[CANCEL] = "b";
-	button[MANUAL] = "y";
-	button[DEC] = "x";
-	button[INC] = "y";
-	button[SECTION_PREV] = "l";
-	button[SECTION_NEXT] = "r";
-	button[PAGEUP] = "l";
-	button[PAGEDOWN] = "r";
-	button[SETTINGS] = "start";
-	button[MENU] = "select";
-	button[VOLUP] = "vol+";
-	button[VOLDOWN] = "vol-";
-}
-
-MessageBox::~MessageBox() {
-	gmenu2x->input.dropEvents(); // prevent passing input away
-	gmenu2x->powerManager->resetSuspendTimer();
-	clearTimer();
+	//Default labels
+	buttonLabels[UP] = "up";
+	buttonLabels[DOWN] = "down";
+	buttonLabels[LEFT] = "left";
+	buttonLabels[RIGHT] = "right";
+	buttonLabels[MODIFIER] = "a";
+#if defined(TARGET_RS97) || defined(TARGET_MIYOO) || defined(TARGET_TRIMUI)
+	buttonLabels[CONFIRM] = "a";
+	buttonLabels[CANCEL] = "b";
+#else
+	buttonLabels[CONFIRM] = "b";
+	buttonLabels[CANCEL] = "x";
+#endif
+	buttonLabels[MANUAL] = "y";
+	buttonLabels[DEC] = "x";
+	buttonLabels[INC] = "y";
+	buttonLabels[SECTION_PREV] = "l";
+	buttonLabels[SECTION_NEXT] = "r";
+	buttonLabels[PAGEUP] = "l";
+	buttonLabels[PAGEDOWN] = "r";
+	buttonLabels[SETTINGS] = "start";
+	buttonLabels[MENU] = "select";
+	buttonLabels[VOLUP] = "vol+";
+	buttonLabels[VOLDOWN] = "vol-";
 }
 
 void MessageBox::setButton(int action, const string &btn) {
-	buttonText[action] = btn;
+	buttons[action] = btn;
 }
 
-void MessageBox::setAutoHide(uint32_t autohide) {
+void MessageBox::setAutoHide(int autohide) {
 	this->autohide = autohide;
 }
 
-void MessageBox::setBgAlpha(uint32_t bgalpha) {
+void MessageBox::setBgAlpha(bool bgalpha) {
 	this->bgalpha = bgalpha;
 }
 
 int MessageBox::exec() {
-	int fadeAlpha = 0, ix = 0;
-	SDL_Rect box;
+	int result = -1;
 
-	Surface bg(gmenu2x->s);
-
-	gmenu2x->input.dropEvents(); // prevent passing input away
 	gmenu2x->powerManager->clearTimer();
 
-	Surface *icn = gmenu2x->sc.add(icon, icon + "mb");
+	// Surface bg(gmenu2x->s);
+	//Darken background
+	gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->resX, gmenu2x->resY}, (RGBAColor){0,0,0,bgalpha});
 
-	box.h = gmenu2x->font->getTextHeight(text) * gmenu2x->font->height() + gmenu2x->font->height();
-	if (icn != NULL && box.h < 40) box.h = 48;
+	SDL_Rect box;
+	box.h = gmenu2x->font->getTextHeight(text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
+	if (gmenu2x->sc[icon] != NULL && box.h < 40) box.h = 48;
+	box.w = gmenu2x->font->getTextWidth(text) + 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
+	box.x = gmenu2x->halfX - box.w/2 - 2;
+	box.y = gmenu2x->halfY - box.h/2 - 2;
 
-	box.w = gmenu2x->font->getTextWidth(text) + 24;
+	//outer box
+	gmenu2x->s->box(box, gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BG]);
+	
+	//draw inner rectangle
+	gmenu2x->s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BORDER]);
 
-	for (uint32_t i = 0; i < buttonText.size(); i++) {
-		if (!buttonText[i].empty())
-			ix += gmenu2x->font->getTextWidth(buttonText[i]) + 24;
+	//icon+text
+	if (gmenu2x->sc[icon] != NULL)
+		gmenu2x->sc[icon]->blit( gmenu2x->s, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
+
+	gmenu2x->s->write(gmenu2x->font, text, box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), gmenu2x->halfY - gmenu2x->font->getHeight()/5, VAlignMiddle, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+
+	if (this->autohide) {
+		gmenu2x->s->flip();
+		SDL_Delay(this->autohide);
+		gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
+		return -1;
 	}
-	ix += 6;
+	//draw buttons rectangle
+	gmenu2x->s->box(box.x, box.y+box.h, box.w, gmenu2x->font->getHeight(), gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BG]);
 
-	if (ix > box.w) box.w = ix;
+	int btnX = gmenu2x->halfX+box.w/2-6;
+	for (uint32_t i = 0; i < buttons.size(); i++) {
+		if (buttons[i] != "") {
+			buttonPositions[i].y = box.y+box.h+gmenu2x->font->getHalfHeight();
+			buttonPositions[i].w = btnX;
 
-	ix = (icn != NULL ? 42 : 0);
+			btnX = gmenu2x->drawButtonRight(gmenu2x->s, buttonLabels[i], buttons[i], btnX, buttonPositions[i].y);
 
-	box.w += ix;
-	box.x = (gmenu2x->platform->w - box.w) / 2 - 2;
-	box.y = (gmenu2x->platform->h - box.h) / 2 - 2;
-
-	uint32_t tickStart = SDL_GetTicks();
-	do {
-		bg.blit(gmenu2x->s, 0, 0);
-
-		// Darken background
-		gmenu2x->s->box(0, 0, gmenu2x->platform->w, gmenu2x->platform->h, 0,0,0, fadeAlpha);
-
-		fadeAlpha = intTransition(0, bgalpha, tickStart, 200);
-
-		// outer box
-		gmenu2x->s->box(box, gmenu2x->skinConfColor["messageBoxBg"]);
-
-		// draw inner rectangle
-		gmenu2x->s->rectangle(box.x + 2, box.y + 2, box.w - 4, box.h - 4, gmenu2x->skinConfColor["messageBoxBorder"]);
-
-		// icon+text
-		if (icn != NULL) {
-			gmenu2x->s->setClipRect({box.x + 8, box.y + 8, 32, 32});
-
-			if (icn->width() > 32 || icn->height() > 32)
-				icn->softStretch(32, 32, SScaleFit);
-
-			icn->blit(gmenu2x->s, box.x + 24, box.y + 24, HAlignCenter | VAlignMiddle);
-			gmenu2x->s->clearClipRect();
+			buttonPositions[i].x = btnX;
+			buttonPositions[i].w = buttonPositions[i].x-btnX-6;
 		}
+	}
+	gmenu2x->s->flip();
 
-		// gmenu2x->s->box(ix + box.x, box.y, (box.w - ix), box.h, strtorgba("ffff00ff"));
-		gmenu2x->s->write(gmenu2x->font, text, ix + box.x + (box.w - ix) / 2, box.y + box.h / 2, HAlignCenter | VAlignMiddle, gmenu2x->skinConfColor["fontAlt"], gmenu2x->skinConfColor["fontAltOutline"]);
-
-		if (!this->autohide) {
-			// draw buttons rectangle
-			gmenu2x->s->box(box.x, box.y+box.h, box.w, gmenu2x->font->height(), gmenu2x->skinConfColor["messageBoxBg"]);
-
-			int btnX = (gmenu2x->platform->w + box.w) / 2 - 6;
-			for (uint32_t i = 0; i < buttonText.size(); i++) {
-				if (!buttonText[i].empty()) {
-					buttonPosition[i].y = box.y+box.h+gmenu2x->font->height() / 2;
-					buttonPosition[i].w = btnX;
-
-					btnX = gmenu2x->drawButtonRight(gmenu2x->s, button[i], buttonText[i], btnX, buttonPosition[i].y);
-
-					buttonPosition[i].x = btnX;
-					buttonPosition[i].w = buttonPosition[i].x-btnX-6;
+	while (result < 0) {
+		//touchscreen
+		if (gmenu2x->f200 && gmenu2x->ts.poll()) {
+			for (uint32_t i = 0; i < buttons.size(); i++) {
+				if (buttons[i] != "" && gmenu2x->ts.inRect(buttonPositions[i])) {
+					result = i;
+					break;
 				}
 			}
 		}
 
-		gmenu2x->s->flip();
-	} while (fadeAlpha < bgalpha);
-
-	if (this->autohide) {
-		SDL_Delay(this->autohide);
-		// gmenu2x->powerManager->resetSuspendTimer(); // prevent immediate suspend
-		return -1;
-	}
-
-	while (true) {
-		// touchscreen
-		// if (gmenu2x->f200 && gmenu2x->ts.poll()) {
-		// 	for (uint32_t i = 0; i < buttonText.size(); i++) {
-		// 		if (buttonText[i] != "" && gmenu2x->ts.inRect(buttonPosition[i])) {
-		// 			result = i;
-		// 			break;
-		// 		}
-		// 	}
-		// }
-
 		bool inputAction = gmenu2x->input.update();
 		if (inputAction) {
 			// if (gmenu2x->inputCommonActions(inputAction)) continue; // causes power button bounce
-			for (uint32_t i = 0; i < buttonText.size(); i++) {
-				if (buttonText[i] != "" && gmenu2x->input[i]) {
-					return i;
+			for (uint32_t i = 0; i < buttons.size(); i++) {
+				if (buttons[i] != "" && gmenu2x->input[i]) {
+					result = i;
 					break;
 				}
 			}
 		}
 	}
 
-	return -1;
-}
-
-void MessageBox::exec(uint32_t timeOut) {
-	clearTimer();
-	popupTimer = SDL_AddTimer(timeOut, execTimer, this);
-}
-
-void MessageBox::clearTimer() {
-	SDL_RemoveTimer(popupTimer); popupTimer = NULL;
-}
-
-uint32_t MessageBox::execTimer(uint32_t interval, void *param) {
-	MessageBox *mb = reinterpret_cast<MessageBox *>(param);
-	mb->clearTimer();
-	mb->exec();
-	return 0;
+	gmenu2x->input.dropEvents(); // prevent passing input away
+	gmenu2x->powerManager->resetSuspendTimer();
+	return result;
 }
