@@ -500,6 +500,7 @@ void GMenu2X::initMenu() {
 
 			menu->addActionLink(i, tr["About"], MakeDelegate(this, &GMenu2X::about), tr["Info about GMenuNX"], "about.png");
 			menu->addActionLink(i, tr["Power"], MakeDelegate(this, &GMenu2X::poweroffDialog), tr["Power menu"], "exit.png");
+			menu->addActionLink(i, tr["CPU Settings"], MakeDelegate(this, &GMenu2X::cpuSettings), tr["Config CPU clock"], "cpu.png");
 		}
 	}
 	menu->setSectionIndex(confInt["section"]);
@@ -676,7 +677,7 @@ void GMenu2X::resetSettings() {
 	}
 }
 
-void GMenu2X::cpuSettings() {
+void GMenu2X::cpuSettings() {  
 SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/cpu.png");
 sd.allowCancel = true;
 sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &confInt["cpuMenu"], 672, 672, 864, 96));
