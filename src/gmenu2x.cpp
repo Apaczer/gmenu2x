@@ -679,7 +679,7 @@ void GMenu2X::resetSettings() {
 
 void GMenu2X::cpuSettings() {  
 SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/cpu.png");
-sd.allowCancel_link = true;
+sd.allowCancel = true;
 sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &confInt["cpuMenu"], 672, 672, 864, 96));
 sd.addSetting(new MenuSettingInt(this, tr["Maximum CPU clock"], tr["Maximum overclock for launching links"], &confInt["cpuMax"], 864, 672, 1248, 96));
 sd.addSetting(new MenuSettingInt(this, tr["Minimum CPU clock"], tr["Minimum underclock used in Suspend mode"], &confInt["cpuMin"], 192, 192, 672, 96));
