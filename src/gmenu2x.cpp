@@ -817,6 +817,9 @@ void GMenu2X::writeConfig() {
 				curr->first == "defaultDir" ||
 
 				// defaults
+				(curr->first == "cpuMenu" && curr->second.empty()) ||
+				(curr->first == "cpuMax" && curr->second.empty()) ||
+				(curr->first == "cpuMin" && curr->second.empty()) ||
 				(curr->first == "datetime" && curr->second.empty()) ||
 				(curr->first == "homePath" && curr->second == CARD_ROOT) ||
 				(curr->first == "skin" && curr->second == "Default") ||
@@ -844,9 +847,6 @@ void GMenu2X::writeConfig() {
 				curr->first == "menuClock" ||
 				curr->first == "TVOut" ||
 				curr->first == "cpuLink" ||
-				curr->first == "cpuMenu" ||
-				curr->first == "cpuMax" ||
-				curr->first == "cpuMin" ||
 
 				// moved to skin conf
 				curr->first == "linkCols" ||
