@@ -684,12 +684,13 @@ sd.allowCancel = true;
 sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &confInt["cpuMenu"], 672, 672, 864, 96));
 sd.addSetting(new MenuSettingInt(this, tr["Maximum CPU clock"], tr["Maximum overclock for launching links"], &confInt["cpuMax"], 864, 672, 1248, 96));
 sd.addSetting(new MenuSettingInt(this, tr["Minimum CPU clock"], tr["Minimum underclock used in Suspend mode"], &confInt["cpuMin"], 192, 192, 672, 96));
-
+sd.addSetting(new MenuSettingInt(this, tr["Link CPU clock"], tr["Set LinkApp default CPU frequency"], &confInt["cpuLink"], 192, 672, 1248, 96));
 
 if (sd.exec() && sd.edited() && sd.save) {
 		setCPU(confInt["cpuMenu"]);
 		setCPU(confInt["cpuMax"]);
 		setCPU(confInt["cpuMin"]);
+		setCPU(confInt["cpuLink"]);
  		writeConfig();
  	}
   }
@@ -820,6 +821,7 @@ void GMenu2X::writeConfig() {
 				(curr->first == "cpuMenu" && curr->second.empty()) ||
 				(curr->first == "cpuMax" && curr->second.empty()) ||
 				(curr->first == "cpuMin" && curr->second.empty()) ||
+				(curr->first == "cpuLink" && curr->second.empty()) ||
 				(curr->first == "datetime" && curr->second.empty()) ||
 				(curr->first == "homePath" && curr->second == CARD_ROOT) ||
 				(curr->first == "skin" && curr->second == "Default") ||
@@ -846,7 +848,6 @@ void GMenu2X::writeConfig() {
 				curr->first == "minClock" ||
 				curr->first == "menuClock" ||
 				curr->first == "TVOut" ||
-				curr->first == "cpuLink" ||
 
 				// moved to skin conf
 				curr->first == "linkCols" ||
