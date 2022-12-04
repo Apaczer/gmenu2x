@@ -41,7 +41,7 @@ class Menu {
 private:
 	GMenu2X *gmenu2x;
 	int iSection, iLink;
-	int32_t iFirstDispSection, iFirstDispRow;
+	uint32_t iFirstDispSection, iFirstDispRow;
 	vector<string> sections;
 	vector<linklist> links;
 
