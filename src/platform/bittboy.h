@@ -171,11 +171,11 @@ private:
 	}
 
 	void hwInit() {
-		CPU_MENU = 672;
-		CPU_LINK = 672;
-		CPU_MAX = 864;
+		CPU_MENU = 702;
+		CPU_LINK = 702;
+		CPU_MAX = 1000;
 		CPU_MIN = 192;
-		CPU_STEP = 16;
+		CPU_STEP = 2;
 
 		batteryIcon = getBatteryStatus(getBatteryLevel(), 0, 0);
 		// setenv("HOME", "/mnt", 1);
