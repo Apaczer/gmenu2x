@@ -1941,48 +1941,23 @@ int GMenu2X::drawButtonRight(Surface *s, const string &btn, const string &text, 
 	return x - 6;
 }
 
-void GMenu2X::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect, const uint8_t align) {
+void GMenu2X::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect) {
 	if (totalsize <= pagesize) return;
-	SDL_Rect bar = {2, 2, 2, 2};
 
-	if ((align & VAlignBottom) || (align & VAlignTop)) {
-		bar.w = (scrollRect.w - 3) * pagesize / totalsize;
-		bar.x = (scrollRect.w - 3) * pagepos / totalsize;
-		bar.x = scrollRect.x + bar.x + 3;
+	// internal bar total height = height-2
+	// bar size
+	uint32_t bs = (scrollRect.h - 3) * pagesize / totalsize;
+	// bar y position
+	uint32_t by = (scrollRect.h - 3) * pagepos / totalsize;
 
-		if (align & VAlignTop) {
-			bar.y = scrollRect.y + 2; // top
-		} else {
-			bar.y = scrollRect.y + scrollRect.h - 4; // bottom
-		}
+	if (bs < 8) bs = 8;
 
-		if (bar.w < 8) {
-			bar.w = 8;
-		}
+	by = scrollRect.y + 3 + by;
+	if (by + bs > scrollRect.y + scrollRect.h - 4)
+		by = scrollRect.y + scrollRect.h - 4 - bs;
 
-		if (bar.x + bar.w > scrollRect.x + scrollRect.w - 3) {
-			bar.x = scrollRect.x + scrollRect.w - bar.w - 3;
-		}
-	} else { // HAlignLeft || HAlignRight
-		bar.h = (scrollRect.h - 3) * pagesize / totalsize;
-		bar.y = (scrollRect.h - 3) * pagepos / totalsize;
-		bar.y = scrollRect.y + bar.y + 3;
-
-		if (align & HAlignRight) {
-			bar.x = scrollRect.x + scrollRect.w - 4; // right
-		}
-
-		if (bar.h < 8) {
-			bar.h = 8;
-		}
-
-		if (bar.y + bar.h > scrollRect.y + scrollRect.h - 3) {
-			bar.y = scrollRect.y + scrollRect.h - bar.h - 3;
-		}
-	}
-
-	s->box(bar, skinConfColors[COLOR_SELECTION_BG]);
-	s->rectangle(bar.x - 1, bar.y - 1, bar.w + 2, bar.h + 2, skinConfColors[COLOR_LIST_BG]);
+	s->rectangle(scrollRect.x + scrollRect.w - 4, by, 4, bs, skinConfColors[COLOR_LIST_BG]);
+	s->box(scrollRect.x + scrollRect.w - 3, by + 1, 2, bs - 2, skinConfColors[COLOR_SELECTION_BG]);
 }
 
 void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) {
