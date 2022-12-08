@@ -639,7 +639,7 @@ void GMenu2X::resetSettings() {
 	  }
 
 	if (sd.exec() && sd.edited() && sd.save) {
-		MessageBox mb(this, tr["Changes will be applied to ALL\napps and GMenuNX. Are you sure?"], "skin:icons/exit.png");
+		MessageBox mb(this, tr["Changes will be applied to ALL"]+"\n"+tr["apps and GMenuNX. Are you sure?"], "skin:icons/exit.png");
 		mb.setButton(CANCEL, tr["Cancel"]);
 		mb.setButton(MANUAL,  tr["Yes"]);
 		if (mb.exec() != MANUAL) return;
