@@ -1636,7 +1636,7 @@ void GMenu2X::editLink() {
 		menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAliases);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
-		menu->selLinkApp()->setCPU(linkClock);
+//		menu->selLinkApp()->setCPU(linkClock);
 
 #if defined(HW_GAMMA)
 		menu->selLinkApp()->setGamma(linkGamma);

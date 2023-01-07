@@ -33,7 +33,7 @@ extern char** environ;
 
 LinkApp::LinkApp(GMenu2X *gmenu2x, const char* file):
 Link(gmenu2x, MakeDelegate(this, &LinkApp::run)), file(file) {
-	setCPU(gmenu2x->confInt["cpuLink"]);
+	//setCPU(gmenu2x->confInt["cpuLink"]);
 
 #if defined(HW_GAMMA)
 	//G
@@ -67,7 +67,7 @@ Link(gmenu2x, MakeDelegate(this, &LinkApp::run)), file(file) {
 		else if (name == "params") setParams(value);
 		else if (name == "home") setHomeDir(value);
 		else if (name == "manual") setManual(value);
-		else if (name == "clock") setCPU(atoi(value.c_str()));
+		//else if (name == "clock") setCPU(atoi(value.c_str()));
 
 #if defined(HW_GAMMA)
 		// else if (name == "wrapper" && value == "true") // wrapper = true;
@@ -392,7 +392,7 @@ void LinkApp::launch(const string &selectedFile, string dir) {
 		gmenu2x->writeConfig();
 	}
 
-	if (getCPU() != gmenu2x->confInt["cpuMenu"]) gmenu2x->setCPU(getCPU());
+//	if (getCPU() != gmenu2x->confInt["cpuMenu"]) gmenu2x->setCPU(getCPU());
 
 #if defined(TARGET_GP2X)
 	//if (useRamTimings) gmenu2x->applyRamTimings();
