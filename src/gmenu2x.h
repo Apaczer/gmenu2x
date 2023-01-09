@@ -124,6 +124,7 @@ private:
 	virtual void tvOutDialog(int16_t mode = -1) { };
 	virtual void hwInit() { };
 	virtual void hwDeinit() { };
+	virtual void set_module(const char* filename) { };
 
 public:
 	static GMenu2X *instance;

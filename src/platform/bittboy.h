@@ -151,6 +151,15 @@ private:
 		}
 	}
 
+	 void set_module(const char* filename) {
+        int fd = open(filename, O_RDONLY | O_CLOEXEC);
+        if (fd > 0) {
+            syscall(__NR_delete_module, "kernel_driver", O_NONBLOCK | O_EXCL);
+            syscall(__NR_finit_module, fd, "", 0);
+            close(fd);
+        }
+    }
+
 	void hwInit() {
 		CPU_MENU = 672;
 		CPU_LINK = 672;
@@ -161,6 +170,8 @@ private:
 		batteryIcon = getBatteryStatus(getBatteryLevel(), 0, 0);
 		// setenv("HOME", "/mnt", 1);
 		system("mount -o remount,async /mnt");
+		
+		set_module("/mnt/kernel/kernel_driver_custom.ko");
 
 		memdev = open("/dev/mem", O_RDWR);
 		if (memdev > 0) {
