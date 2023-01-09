@@ -2,6 +2,7 @@
 #define HW_BITTBOY_H
 
 #include <sys/mman.h>
+#include <sys/syscall.h>
 
 /*	BittBoy Key Codes. pingflood, 2019
 	BUTTON     GMENU          SDL             NUMERIC   GPIO
