@@ -588,7 +588,6 @@ void GMenu2X::settings() {
 		if (confStr["lang"] != lang) {
 			confStr["lang"] = lang;
 			tr.setLang(lang);
-			reinit();
 		}
 
 		setBacklight(confInt["backlight"], false);
