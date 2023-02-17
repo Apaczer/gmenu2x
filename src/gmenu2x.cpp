@@ -684,6 +684,7 @@ sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the defa
 sd.addSetting(new MenuSettingInt(this, tr["Maximum CPU clock"], tr["Maximum overclock for launching links"], &confInt["cpuMax"], 864, 672, 1248, 96));
 sd.addSetting(new MenuSettingInt(this, tr["Minimum CPU clock"], tr["Minimum underclock used in Suspend mode"], &confInt["cpuMin"], 192, 192, 672, 96));
 sd.addSetting(new MenuSettingInt(this, tr["Link CPU clock"], tr["Set LinkApp default CPU frequency"], &confInt["cpuLink"], 672, 192, 1248, 96));
+sd.addSetting(new MenuSettingInt(this, tr["Step for clock values"], tr["Set Step default CPU frequency"], &confInt["cpuStep"], 96, 1, 200, 1));
 
 if (sd.exec() && sd.edited() && sd.save) {
 		setCPU(confInt["cpuMenu"]);
@@ -754,6 +755,7 @@ void GMenu2X::readConfig() {
 	confInt["cpuMax"] = CPU_MAX;
 	confInt["cpuMin"] = CPU_MIN;
 	confInt["cpuLink"] = CPU_LINK;
+	confInt["cpuStep"] = CPU_STEP;
 
 	// input.update(false);
 
@@ -818,6 +820,7 @@ void GMenu2X::writeConfig() {
 				(curr->first == "cpuMax" && curr->second.empty()) ||
 				(curr->first == "cpuMin" && curr->second.empty()) ||
 				(curr->first == "cpuLink" && curr->second.empty()) ||
+				(curr->first == "cpuStep" && curr->second.empty()) ||
 				(curr->first == "datetime" && curr->second.empty()) ||
 				(curr->first == "homePath" && curr->second == CARD_ROOT) ||
 				(curr->first == "skin" && curr->second == "Default") ||
@@ -1576,7 +1579,7 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", linkExec, dialogTitle, dialogIcon));
 
 	if (CPU_MAX != CPU_MIN) {
-		sd.addSetting(new MenuSettingInt(		this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, confInt["cpuMenu"], confInt["cpuMin"], confInt["cpuMax"], CPU_STEP));
+		sd.addSetting(new MenuSettingInt(		this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, confInt["cpuMenu"], confInt["cpuMin"], confInt["cpuMax"], confInt["cpuStep"]));
 	}
 	// sd.addSetting(new MenuSettingDir(			this, tr["Home Path"],		tr["Set directory as $HOME for this link"], &linkHomeDir, CARD_ROOT, dialogTitle, dialogIcon));
 
