@@ -1408,7 +1408,7 @@ void GMenu2X::reinit_save() {
 }
 
 void GMenu2X::poweroffDialog() {
-#if !defined(TARGET_BITTBOY)
+#if !defined(NO_REBOOT)
 	MessageBox mb(this, tr["Poweroff or reboot the device?"], "skin:icons/exit.png");
 	mb.setButton(SECTION_NEXT, tr["Reboot"]);
 #else
