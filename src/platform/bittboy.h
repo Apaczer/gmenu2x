@@ -47,7 +47,7 @@ static uint32_t oc_table[] = {
   ((24 * 36) << 16) | ((34 << 8) | (4 << 2)), // 864
   ((24 * 37) << 16) | ((35 << 8) | (4 << 2)), // 888
   ((24 * 38) << 16) | ((36 << 8) | (4 << 2)), // 912
-}
+};
 
 // #define MIYOO_LID_FILE "/mnt/.backlight.conf"
 // static int read_conf(const char *file)
