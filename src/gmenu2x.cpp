@@ -220,6 +220,7 @@ void GMenu2X::main() {
 
 	setBacklight(confInt["backlight"]);
 	setVolume(confInt["globalVolume"]);
+	setCPU(confInt["cpuMenu"]);
 
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 	setenv("SDL_NOMOUSE", "1", 1);
