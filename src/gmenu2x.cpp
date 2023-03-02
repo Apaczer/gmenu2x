@@ -742,14 +742,14 @@ void GMenu2X::readConfig() {
 	// Defaults *** Sync with default values in writeConfig
 	confInt["saveSelection"] = 1;
 	confStr["datetime"] = __BUILDTIME__;
-	confInt["skinBackdrops"] = 0;
+	confInt["skinBackdrops"] = 1;
 	confStr["homePath"] = CARD_ROOT;
 	confInt["globalVolume"] = 60;
 	confStr["bgscale"] = "Crop";
 	confStr["skinFont"] = "Custom";
 	confInt["backlightTimeout"] = 30;
-	confInt["powerTimeout"] = 10;
-	confInt["backlight"] = 70;
+	confInt["powerTimeout"] = 0;
+	confInt["backlight"] = 90;
 	
 	confInt["cpuMenu"] = CPU_MENU;
 	confInt["cpuMax"] = CPU_MAX;
@@ -856,15 +856,13 @@ void GMenu2X::writeConfig() {
 				curr->first == "linkLabel" ||
 
 				// defaults
-				(curr->first == "skinBackdrops" && curr->second == 0) ||
+				(curr->first == "skinBackdrops" && curr->second == 1) ||
 				(curr->first == "backlightTimeout" && curr->second == 30) ||
 				(curr->first == "powerTimeout" && curr->second == 10) ||
 				(curr->first == "outputLogs" && curr->second == 0) ||
 				// (curr->first == "cpuMin" && curr->second == 342) ||
 				// (curr->first == "cpuMax" && curr->second == 740) ||
 				// (curr->first == "cpuMenu" && curr->second == 528) ||
-				(curr->first == "globalVolume" && curr->second == 60) ||
-				(curr->first == "backlight" && curr->second == 70) ||
 				(curr->first == "minBattery" && curr->second == 3550) ||
 				(curr->first == "maxBattery" && curr->second == 3720) ||
 				(curr->first == "saveSelection" && curr->second == 1) ||
